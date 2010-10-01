@@ -116,6 +116,12 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 	}
 	
 	function test_auto_comment_check_meta_result() {
+		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
+	}
+	
+	function test_auto_comment_check_history() {
+		$history = akismet_get_comment_history( $this->comment_id );
+		$this->assertEqual( 'check-ham', $history[0]['event'] );
 	}
 
 }
