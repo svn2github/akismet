@@ -28,6 +28,8 @@ class TestAkismetRetry extends UnitTestCase {
 	
 	function tearDown() {
 		wp_delete_comment( $this->comment_id );
+		unset( $GLOBALS['akismet_last_comment'] );
+
 	}
 	
 	function test_state_before_retry() {
@@ -78,11 +80,12 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 	
 }
 
-// test the main API calls with a simple comment
+// make sure the initial comment check is triggered, and the correct result stored, when wp_new_comment() is called
 class TestAkismetAutoCheckComment extends UnitTestCase {
 	var $comment;
 	var $comment_id;
 	var $old_discard_option;
+	var $comment_author = 'alex';
 	
 	function setUp() {
 		// make sure we don't accidentally die()
@@ -91,7 +94,7 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 		
 		$this->comment = array(
 			'comment_post_ID' => 1,
-			'comment_author' => 'alex',
+			'comment_author' => $this->comment_author,
 			'comment_author_email' => 'alex@example.com',
 			'comment_content' => 'This is a test: '. __CLASS__,
 		);
@@ -109,6 +112,8 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 	function tearDown() {
 		wp_delete_comment( $this->comment_id );
 		update_option('akismet_discard_month', $this->old_discard_option);
+		unset( $GLOBALS['akismet_last_comment'] );
+		
 	}
 	
 	function test_auto_comment_check_result() {
@@ -124,6 +129,93 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 		$this->assertEqual( 'check-ham', $history[0]['event'] );
 	}
 
+}
+
+// same as for TestAkismetAutoCheckComment, but with a spam comment
+class TestAkismetAutoCheckCommentSpam extends TestAkismetAutoCheckComment {
+	var $comment_author = 'viagra-test-123';
+	
+	function test_auto_comment_check_result() {
+		$this->assertEqual( 'spam', wp_get_comment_status( $this->comment_id ) );
+	}
+	
+	function test_auto_comment_check_meta_result() {
+		$this->assertEqual( 'true', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
+	}
+	
+	function test_auto_comment_check_history() {
+		$history = akismet_get_comment_history( $this->comment_id );
+		$this->assertEqual( 'check-spam', $history[0]['event'] );
+	}
+}
+
+// check that Akismet does the right thing when spam-related actions are triggered (clicking the Spam button etc)
+class TestAkismetSubmitActions extends UnitTestCase {
+	var $comment;
+	var $comment_id;
+	var $old_discard_option;
+	var $old_post;
+	var $comment_author = 'alex';
+	
+	function setUp() {
+		// make sure we don't accidentally die()
+		$this->old_discard_option = get_option('akismet_discard_month');
+		$this->old_post = $_POST;
+		update_option('akismet_discard_month', 'false');
+		
+		$this->comment = array(
+			'comment_post_ID' => 1,
+			'comment_author' => $this->comment_author,
+			'comment_author_email' => 'alex@example.com',
+			'comment_content' => 'This is another test: blah',
+		);
+		
+		// make sure we don't trigger the dupe filter
+		global $wpdb;
+		if ( $dupe_comment_id = $wpdb->get_var( $wpdb->prepare("SELECT comment_ID FROM $wpdb->comments WHERE comment_post_id = %d AND comment_author = %s AND comment_author_email = %s AND comment_content = %s", $this->comment['comment_post_ID'], $this->comment['comment_author'], $this->comment['comment_author_email'], $this->comment['comment_content']) ) ) {
+			wp_delete_comment( $dupe_comment_id );
+		}
+
+		unset( $GLOBALS['akismet_last_comment'] );
+		
+		$this->comment_id = @wp_new_comment( $this->comment );
+		
+		#$this->db_comment = get_comment( $this->comment_id );
+		
+	}
+	
+	function tearDown() {
+		wp_delete_comment( $this->comment_id );
+		update_option('akismet_discard_month', $this->old_discard_option);
+		$_POST = $this->old_post;
+		unset( $GLOBALS['akismet_last_comment'] );
+	}
+	
+	function test_ajax_spam_button() {
+		global $wp_filter;
+		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['spam'] = 1;
+		wp_spam_comment( $this->comment_id );
+		
+		$this->assertEqual('true', get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+	}
+	
+	function test_ajax_unspam_button() {
+		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['unspam'] = 1;
+		wp_unspam_comment( $this->comment_id );
+
+		// this is not submitted to Akismet because the status didn't change (transition was from approved to approved)
+		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+	}
+	
+	function test_ajax_trash_button() {
+		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['trash'] = 1;
+		wp_trash_comment( $this->comment_id );
+		
+		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+	}
 }
 
 ?>
