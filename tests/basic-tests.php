@@ -88,6 +88,7 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 	var $old_moderation_option;
 	var $old_whitelist_option;
 	var $comment_author = 'alex';
+	var $comment_content = 'This is a test';
 	
 	function setUp() {
 		// make sure we don't accidentally die()
@@ -102,7 +103,7 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 			'comment_post_ID' => 1,
 			'comment_author' => $this->comment_author,
 			'comment_author_email' => 'alex@example.com',
-			'comment_content' => 'This is a test: '. __CLASS__,
+			'comment_content' => $this->comment_content . ': '. __CLASS__,
 		);
 		
 		// make sure we don't trigger the dupe filter
@@ -154,6 +155,41 @@ class TestAkismetAutoCheckCommentSpam extends TestAkismetAutoCheckComment {
 	function test_auto_comment_check_history() {
 		$history = akismet_get_comment_history( $this->comment_id );
 		$this->assertEqual( 'check-spam', $history[0]['event'] );
+	}
+}
+
+// test a comment that Akismet says is not spam, but the WP Comment Blacklist feature blocks
+class TestAkismetAutoCheckCommentWPBlacklist extends TestAkismetAutoCheckComment {
+	var $comment_author = 'alex';
+	var $comment_content = 'Comment containing akismet-special-wp-blacklist-test string';
+	var $old_blacklist_setting;
+
+	function setUp() {
+		$this->old_blacklist_setting = get_option('blacklist_keys');
+		update_option('blacklist_keys', 'akismet-special-wp-blacklist-test');
+		parent::setUp();
+	}
+
+	function tearDown() {
+		parent::tearDown();
+
+		update_option('blacklist_keys', $this->old_blacklist_setting);
+	}
+
+	function test_auto_comment_check_result() {
+		// comment status will be spam because of the WP blacklist feature
+		$this->assertEqual( 'spam', wp_get_comment_status( $this->comment_id ) );
+	}
+	
+	function test_auto_comment_check_meta_result() {
+		// but Akismet says Not Spam
+		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
+	}
+	
+	function test_auto_comment_check_history() {
+		$history = akismet_get_comment_history( $this->comment_id );
+		$this->assertEqual( 'wp-blacklisted', $history[0]['event'] );
+		$this->assertEqual( 'check-ham', $history[1]['event'] );
 	}
 }
 
