@@ -224,6 +224,63 @@ class TestAkismetSubmitActions extends UnitTestCase {
 		
 		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
 	}
+
+	function test_edit_comment_spam() {
+		$_POST['action'] = 'editedcomment';
+		$comment = (array) get_comment( $this->comment_id );
+		$comment['comment_approved'] = 'spam';
+		wp_update_comment( $comment );
+
+		$this->assertEqual('true', get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+	}
+
+	function test_edit_comment_ham() {
+		$_POST['action'] = 'editedcomment';
+		$comment = (array) get_comment( $this->comment_id );
+		$comment['comment_approved'] = '1';
+		wp_update_comment( $comment );
+
+		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+	}
 }
 
+class TestAkismetSubmitActionsSpam extends TestAkismetSubmitActions {
+	var $comment_author = 'viagra-test-123';
+
+	function test_ajax_spam_button() {
+		global $wp_filter;
+		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['spam'] = 1;
+		wp_spam_comment( $this->comment_id );
+	
+		// not submitted to Akismet because the status didn't change	
+		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+	}
+	
+	function test_ajax_unspam_button() {
+		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['unspam'] = 1;
+		wp_unspam_comment( $this->comment_id );
+
+		$this->assertEqual('false', get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+	}
+	
+	function test_edit_comment_spam() {
+		$_POST['action'] = 'editedcomment';
+		$comment = (array) get_comment( $this->comment_id );
+		$comment['comment_approved'] = 'spam';
+		wp_update_comment( $comment );
+
+		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+	}
+
+	function test_edit_comment_ham() {
+		$_POST['action'] = 'editedcomment';
+		$comment = (array) get_comment( $this->comment_id );
+		$comment['comment_approved'] = '1';
+		wp_update_comment( $comment );
+
+		$this->assertEqual('false', get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+	}
+}
 ?>
