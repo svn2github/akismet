@@ -198,14 +198,20 @@ class TestAkismetSubmitActions extends UnitTestCase {
 	var $comment;
 	var $comment_id;
 	var $old_discard_option;
+	var $old_moderation_option;
+	var $old_whitelist_option;
 	var $old_post;
 	var $comment_author = 'alex';
 	
 	function setUp() {
 		// make sure we don't accidentally die()
-		$this->old_discard_option = get_option('akismet_discard_month');
 		$this->old_post = $_POST;
+		$this->old_discard_option = get_option('akismet_discard_month');
+		$this->old_moderation_option = get_option('comment_moderation');
+		$this->old_whitelist_option = get_option('comment_whitelist');
 		update_option('akismet_discard_month', 'false');
+		update_option('comment_moderation', 0);
+		update_option('comment_whitelist', 0);
 		
 		$this->comment = array(
 			'comment_post_ID' => 1,
@@ -231,6 +237,8 @@ class TestAkismetSubmitActions extends UnitTestCase {
 	function tearDown() {
 		wp_delete_comment( $this->comment_id );
 		update_option('akismet_discard_month', $this->old_discard_option);
+		update_option('comment_moderation', $this->old_moderation_option);
+		update_option('comment_whitelist', $this->old_whitelist_option);
 		$_POST = $this->old_post;
 		unset( $GLOBALS['akismet_last_comment'] );
 	}
@@ -296,6 +304,39 @@ class TestAkismetSubmitActions extends UnitTestCase {
 
 		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
 	}
+
+	function test_mystery_spam() {
+		// comment status changes to spam for unknown reason - another spam plugin for example
+		wp_spam_comment( $this->comment_id );
+
+		// not submitted to Akismet
+		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+	}
+
+	function test_mystery_spam_history() {
+		// comment status changes to spam for unknown reason - another spam plugin for example
+		wp_spam_comment( $this->comment_id );
+
+		// not submitted to Akismet
+		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+
+		$history = akismet_get_comment_history( $this->comment_id );
+		// mystery status change should be recorded
+		$this->assertEqual( 'status-spam', $history[0]['event'] );
+	}
+
+	function test_mystery_unspam() {
+		// comment status changes to ham for unknown reason - another spam plugin for example
+		wp_unspam_comment( $this->comment_id );
+
+		// not submitted to Akismet
+		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+
+		// not mentioned in history, so the most recent entry is the auto comment check
+		$history = akismet_get_comment_history( $this->comment_id );
+		$this->assertEqual( 'check-ham', $history[0]['event'] );
+	}
+
 }
 
 class TestAkismetSubmitActionsSpam extends TestAkismetSubmitActions {
@@ -354,5 +395,30 @@ class TestAkismetSubmitActionsSpam extends TestAkismetSubmitActions {
 
 		$this->assertEqual('false', get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
 	}
+
+	function test_mystery_spam_history() {
+		// comment status changes to spam for unknown reason - another spam plugin for example
+		wp_spam_comment( $this->comment_id );
+
+		// not submitted to Akismet
+		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+
+		$history = akismet_get_comment_history( $this->comment_id );
+		// not mentioned in history, so the most recent entry is the auto comment check
+		$this->assertEqual( 'check-spam', $history[0]['event'] );
+	}
+
+	function test_mystery_unspam() {
+		// comment status changes to ham for unknown reason - another spam plugin for example
+		wp_unspam_comment( $this->comment_id );
+
+		// not submitted to Akismet
+		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+
+		$history = akismet_get_comment_history( $this->comment_id );
+		// mystery status change should be recorded
+		$this->assertEqual( 'status-unapproved', $history[0]['event'] );
+	}
+
 }
 ?>
