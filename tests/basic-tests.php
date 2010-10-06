@@ -85,12 +85,18 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 	var $comment;
 	var $comment_id;
 	var $old_discard_option;
+	var $old_moderation_option;
+	var $old_whitelist_option;
 	var $comment_author = 'alex';
 	
 	function setUp() {
 		// make sure we don't accidentally die()
 		$this->old_discard_option = get_option('akismet_discard_month');
+		$this->old_moderation_option = get_option('comment_moderation');
+		$this->old_whitelist_option = get_option('comment_whitelist');
 		update_option('akismet_discard_month', 'false');
+		update_option('comment_moderation', 0);
+		update_option('comment_whitelist', 0);
 		
 		$this->comment = array(
 			'comment_post_ID' => 1,
@@ -112,6 +118,8 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 	function tearDown() {
 		wp_delete_comment( $this->comment_id );
 		update_option('akismet_discard_month', $this->old_discard_option);
+		update_option('comment_moderation', $this->old_moderation_option);
+		update_option('comment_whitelist', $this->old_whitelist_option);
 		unset( $GLOBALS['akismet_last_comment'] );
 		
 	}
