@@ -27,7 +27,7 @@ class TestAkismetRetry extends UnitTestCase {
 	}
 	
 	function tearDown() {
-		wp_delete_comment( $this->comment_id );
+		wp_delete_comment( $this->comment_id, true );
 		unset( $GLOBALS['akismet_last_comment'] );
 
 	}
