@@ -252,7 +252,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 		// this is not submitted to Akismet because the status didn't change (transition was from approved to approved)
 		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
 	}
-	
+
 	function test_ajax_trash_button() {
 		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
 		$_POST['trash'] = 1;
@@ -261,6 +261,24 @@ class TestAkismetSubmitActions extends UnitTestCase {
 		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
 	}
 
+	function test_bulk_spam_button() {
+		global $wp_filter;
+		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['action'] = 'spam';
+		wp_spam_comment( $this->comment_id );
+		
+		$this->assertEqual('true', get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+	}
+	
+	function test_bulk_unspam_button() {
+		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['action'] = 'unspam';
+		wp_unspam_comment( $this->comment_id );
+
+		// this is not submitted to Akismet because the status didn't change (transition was from approved to approved)
+		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+	}
+	
 	function test_edit_comment_spam() {
 		$_POST['action'] = 'editedcomment';
 		$comment = (array) get_comment( $this->comment_id );
@@ -315,6 +333,24 @@ class TestAkismetSubmitActionsSpam extends TestAkismetSubmitActions {
 		$comment = (array) get_comment( $this->comment_id );
 		$comment['comment_approved'] = '1';
 		wp_update_comment( $comment );
+
+		$this->assertEqual('false', get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+	}
+
+	function test_bulk_spam_button() {
+		global $wp_filter;
+		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['action'] = 'spam';
+		wp_spam_comment( $this->comment_id );
+		
+		// this is not submitted to Akismet because the status didn't change (transition was from approved to approved)
+		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+	}
+	
+	function test_bulk_unspam_button() {
+		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['action'] = 'unspam';
+		wp_unspam_comment( $this->comment_id );
 
 		$this->assertEqual('false', get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
 	}
