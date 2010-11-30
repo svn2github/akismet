@@ -32,6 +32,7 @@ function akismet_unit_tests() {
 		return;
 	}
 	
+	define('AKISMET_TEST_MODE', true);
 	
 	require_once('simpletest/autorun.php');
 
