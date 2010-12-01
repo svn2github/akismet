@@ -89,6 +89,7 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 	var $old_whitelist_option;
 	var $comment_author = 'alex';
 	var $comment_content = 'This is a test';
+	var $db_comment;
 	
 	function setUp() {
 		// make sure we don't accidentally die()
@@ -114,6 +115,7 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 
 			
 		$this->comment_id = @wp_new_comment( $this->comment );
+		$this->db_comment = get_comment( $this->comment_id );
 	}
 	
 	function tearDown() {
@@ -136,6 +138,17 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 	function test_auto_comment_check_history() {
 		$history = akismet_get_comment_history( $this->comment_id );
 		$this->assertEqual( 'check-ham', $history[0]['event'] );
+	}
+
+	// make sure the main items in the akismet_as_submitted array match the comment
+	function test_auto_comment_as_submitted_matches() {
+		$as_submitted = get_comment_meta( $this->comment_id, 'akismet_as_submitted', true );
+		
+		$this->assertEqual( $this->db_comment->comment_author_email, $as_submitted['comment_author_email'] );
+		$this->assertEqual( $this->db_comment->comment_author, $as_submitted['comment_author'] );
+		$this->assertEqual( $this->db_comment->comment_content, $as_submitted['comment_content'] );
+		$this->assertEqual( $this->db_comment->comment_post_ID, $as_submitted['comment_post_ID'] );
+		$this->assertEqual( $this->db_comment->user_agent, $as_submitted['user_agent'] );
 	}
 
 }
