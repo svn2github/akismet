@@ -3,13 +3,22 @@
 class TestAkismetRetry extends UnitTestCase {
 	var $comment_id;
 	var $comment_author = 'alex';
+	var $old_moderation_option;
+	var $old_whitelist_option;
 	
 	function setUp() {
+		// make sure the preexisting moderation options don't affect test results
+		$this->old_moderation_option = get_option('comment_moderation');
+		$this->old_whitelist_option = get_option('comment_whitelist');
+		update_option('comment_moderation', 0);
+		update_option('comment_whitelist', 0);
+
 		$this->comment_id = wp_insert_comment( array(
 			'comment_post_ID' => 1,
 			'comment_author' => $this->comment_author,
 			'comment_author_email' => 'alex@example.com',
 			'comment_content' => 'This is a test: '. __CLASS__,
+			'comment_approved' => 0, // simulate the behaviour of akismet_auto_check_comment() by holding the comment in the pending queue
 		));
 		
 		$comment = get_comment( $this->comment_id );
@@ -29,14 +38,15 @@ class TestAkismetRetry extends UnitTestCase {
 	function tearDown() {
 		wp_delete_comment( $this->comment_id, true );
 		unset( $GLOBALS['akismet_last_comment'] );
-
+		update_option('comment_moderation', $this->old_moderation_option);
+		update_option('comment_whitelist', $this->old_whitelist_option);
 	}
 	
 	function test_state_before_retry() {
 		// make sure the comment is in the correct state
 		$this->assertTrue( 0 < get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_result', true ) );
-		$this->assertEqual( 'approved', wp_get_comment_status( $this->comment_id ) );
+		$this->assertEqual( 'unapproved', wp_get_comment_status( $this->comment_id ) );
 	}
 	
 	function test_history_before_retry() {
@@ -53,6 +63,19 @@ class TestAkismetRetry extends UnitTestCase {
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
 		$this->assertEqual( 'approved', wp_get_comment_status( $this->comment_id ) );
+	}
+	
+	function test_state_after_retry_moderation() {
+		// turn on moderation
+		update_option('comment_moderation', 1);
+		
+		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
+		akismet_cron_recheck( 0 );
+		
+		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
+		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
+		// this should be in the pending queue now, since moderation is enabled
+		$this->assertEqual( 'unapproved', wp_get_comment_status( $this->comment_id ) );
 	}
 	
 	function test_history_after_retry() {
@@ -78,6 +101,18 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 		$this->assertEqual( 'spam', wp_get_comment_status( $this->comment_id ) );
 	}
 	
+	function test_state_after_retry_moderation() {
+		// turn on moderation
+		update_option('comment_moderation', 1);
+		
+		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
+		akismet_cron_recheck( 0 );
+		
+		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
+		$this->assertEqual( 'true', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
+		// this should be in the pending queue now, since moderation is enabled
+		$this->assertEqual( 'spam', wp_get_comment_status( $this->comment_id ) );
+	}
 }
 
 // make sure the initial comment check is triggered, and the correct result stored, when wp_new_comment() is called
@@ -148,7 +183,7 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 		$this->assertEqual( $this->db_comment->comment_author, $as_submitted['comment_author'] );
 		$this->assertEqual( $this->db_comment->comment_content, $as_submitted['comment_content'] );
 		$this->assertEqual( $this->db_comment->comment_post_ID, $as_submitted['comment_post_ID'] );
-		$this->assertEqual( $this->db_comment->user_agent, $as_submitted['user_agent'] );
+		$this->assertEqual( $this->db_comment->comment_agent, $as_submitted['user_agent'] );
 	}
 
 }
