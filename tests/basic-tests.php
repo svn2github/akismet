@@ -12,6 +12,7 @@ class TestAkismetRetry extends UnitTestCase {
 		$this->old_whitelist_option = get_option('comment_whitelist');
 		update_option('comment_moderation', 0);
 		update_option('comment_whitelist', 0);
+		$this->old_post = $_POST;
 
 		$this->comment_id = wp_insert_comment( array(
 			'comment_post_ID' => 1,
@@ -40,6 +41,7 @@ class TestAkismetRetry extends UnitTestCase {
 		unset( $GLOBALS['akismet_last_comment'] );
 		update_option('comment_moderation', $this->old_moderation_option);
 		update_option('comment_whitelist', $this->old_whitelist_option);
+		$_POST = $this->old_post;
 	}
 	
 	function test_state_before_retry() {
@@ -87,6 +89,23 @@ class TestAkismetRetry extends UnitTestCase {
 		
 		// shh don't tell Nikolay I'm running more that one test per function
 	}
+	
+	// if the user clicks the Spam button on a comment that is awaiting retry, we still should re-check
+	// it and add the akismet_result meta, but leave the comment in the Spam folder 
+	function test_no_retry_after_user_intervention() {
+		$_POST['action'] = 'spam'; // simulate a user button click
+		wp_spam_comment( $this->comment_id );
+
+		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
+		akismet_cron_recheck( 0 );
+
+
+		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
+		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
+		// this should stay in the spam queue, because that's where the user put it
+		$this->assertEqual( 'spam', wp_get_comment_status( $this->comment_id ) );
+
+	}
 }
 
 class TestAkismetRetrySpam extends TestAkismetRetry {
@@ -113,6 +132,23 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 		// this should be in the pending queue now, since moderation is enabled
 		$this->assertEqual( 'spam', wp_get_comment_status( $this->comment_id ) );
 	}
+
+	// if the user clicks the Spam button on a comment that is awaiting retry, we still should re-check
+	// it and add the akismet_result meta, but leave the comment in the Spam folder 
+	function test_no_retry_after_user_intervention() {
+		// move the comment from pending to approved
+		wp_set_comment_status( $this->comment_id, '1', true );
+
+		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
+		akismet_cron_recheck( 0 );
+		
+		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
+		$this->assertEqual( 'true', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
+		// this should stay in the approved queue, because that's where the user put it
+		$this->assertEqual( 'approved', wp_get_comment_status( $this->comment_id ) );
+		
+	}
+
 }
 
 // make sure the initial comment check is triggered, and the correct result stored, when wp_new_comment() is called
@@ -294,6 +330,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 	function test_ajax_spam_button() {
 		global $wp_filter;
 		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['action'] = 'delete-comment';
 		$_POST['spam'] = 1;
 		wp_spam_comment( $this->comment_id );
 		
@@ -302,6 +339,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 	
 	function test_ajax_unspam_button() {
 		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['action'] = 'delete-comment';
 		$_POST['unspam'] = 1;
 		wp_unspam_comment( $this->comment_id );
 
@@ -311,6 +349,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 
 	function test_ajax_trash_button() {
 		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['action'] = 'delete-comment';
 		$_POST['trash'] = 1;
 		wp_trash_comment( $this->comment_id );
 		
@@ -320,6 +359,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 	function test_bulk_spam_button() {
 		global $wp_filter;
 		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['action'] = 'delete-comment';
 		$_POST['action'] = 'spam';
 		wp_spam_comment( $this->comment_id );
 		
@@ -328,6 +368,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 	
 	function test_bulk_unspam_button() {
 		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['action'] = 'delete-comment';
 		$_POST['action'] = 'unspam';
 		wp_unspam_comment( $this->comment_id );
 
@@ -382,7 +423,8 @@ class TestAkismetSubmitActions extends UnitTestCase {
 
 		// not mentioned in history, so the most recent entry is the auto comment check
 		$history = akismet_get_comment_history( $this->comment_id );
-		$this->assertEqual( 'check-ham', $history[0]['event'] );
+		$this->assertEqual( 'status-unapproved', $history[0]['event'] );
+		$this->assertEqual( 'check-ham', $history[1]['event'] );
 	}
 
 }
@@ -393,6 +435,7 @@ class TestAkismetSubmitActionsSpam extends TestAkismetSubmitActions {
 	function test_ajax_spam_button() {
 		global $wp_filter;
 		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['action'] = 'delete-comment';
 		$_POST['spam'] = 1;
 		wp_spam_comment( $this->comment_id );
 	
@@ -402,6 +445,7 @@ class TestAkismetSubmitActionsSpam extends TestAkismetSubmitActions {
 	
 	function test_ajax_unspam_button() {
 		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
+		$_POST['action'] = 'delete-comment';
 		$_POST['unspam'] = 1;
 		wp_unspam_comment( $this->comment_id );
 
