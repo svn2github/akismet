@@ -513,4 +513,40 @@ class TestAkismetSubmitActionsSpam extends TestAkismetSubmitActions {
 	}
 
 }
+
+class TestDeleteOldSpam extends UnitTestCase {
+	var $comment_id;
+	var $comment_author = 'alex';
+
+	function setUp() {
+		$when = strtotime( '-21 days' );
+		
+		$this->comment_id = wp_insert_comment( array(
+			'comment_post_ID' => 1,
+			'comment_author' => $this->comment_author,
+			'comment_author_email' => 'alex@example.com',
+			'comment_content' => 'This is a test: '. __CLASS__,
+			'comment_approved' => 'spam',
+			'comment_date' => date( 'Y-m-d H:i:s', $when ),
+			'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $when ),
+		));
+	}
+	
+	function tearDown() {
+		wp_delete_comment( $this->comment_id );
+	}
+	
+	function test_akismet_delete_old() {
+		akismet_delete_old();
+
+		// make sure it's not cached
+		clean_comment_cache( $this->comment_id );
+		
+		// comment should be gone now
+		$comment = get_comment( $this->comment_id );
+		$this->assertFalse( $comment );
+	}
+}
+
+
 ?>
