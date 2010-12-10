@@ -151,6 +151,93 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 
 }
 
+
+class TestAkismetRetryQueue extends UnitTestCase {
+	var $comment_ids = array();
+	var $comment_author = 'alex';
+	var $old_moderation_option;
+	var $old_whitelist_option;
+	
+	function setUp() {
+		// make sure the preexisting moderation options don't affect test results
+		$this->old_moderation_option = get_option('comment_moderation');
+		$this->old_whitelist_option = get_option('comment_whitelist');
+		update_option('comment_moderation', 0);
+		update_option('comment_whitelist', 0);
+		$this->old_post = $_POST;
+
+		// add 101 comments to the queue
+		for ( $i=0; $i < 101; $i++ ) {
+			$id = wp_insert_comment( array(
+				'comment_post_ID' => 1,
+				'comment_author' => $this->comment_author,
+				'comment_author_email' => 'alex@example.com',
+				'comment_content' => 'This is a test: '. __CLASS__,
+				'comment_approved' => 0, // simulate the behaviour of akismet_auto_check_comment() by holding the comment in the pending queue
+			));
+			$this->comment_ids[] = $id;
+			$comment = get_comment( $id );
+
+			// hack: make the plugin think that we just checked this comment but haven't yet updated meta.
+			global $akismet_last_comment;
+			$akismet_last_comment = (array) $comment;
+			// pretend that checking failed
+			$akismet_last_comment[ 'akismet_result' ] = 'error';
+			// and update commentmeta accordingly
+			akismet_auto_check_update_meta( $id, $comment );
+		}
+
+		$akismet_last_comment = null;
+		
+		// make sure there are no jobs scheduled
+		$j = 0;
+		while ( $j++ < 10 && wp_next_scheduled('akismet_schedule_cron_recheck') )
+			wp_unschedule_event( wp_next_scheduled('akismet_schedule_cron_recheck'), 'akismet_schedule_cron_recheck' );
+	}
+	
+	function tearDown() {
+		foreach ( $this->comment_ids as $id )
+			wp_delete_comment( $id, true );
+		unset( $GLOBALS['akismet_last_comment'] );
+		update_option('comment_moderation', $this->old_moderation_option);
+		update_option('comment_whitelist', $this->old_whitelist_option);
+		$_POST = $this->old_post;
+
+		// make sure there are no jobs scheduled
+		$j = 0;
+		while ( $j++ < 10 && wp_next_scheduled('akismet_schedule_cron_recheck') )
+			wp_unschedule_event( wp_next_scheduled('akismet_schedule_cron_recheck'), 'akismet_schedule_cron_recheck' );
+	}
+	
+	function test_queue_reschedule() {
+		// after running akismet_cron_recheck(), there will still be 1 comment left to recheck.
+		// make sure that the job is rescheduled.
+		
+		// first make sure there's no job to confuse the test
+		$this->assertFalse( wp_next_scheduled('akismet_schedule_cron_recheck') );
+		
+		akismet_cron_recheck(0);
+		
+		// now make sure the job is rescheduled
+		$this->assertTrue( wp_next_scheduled('akismet_schedule_cron_recheck') );
+		
+		// remove it to pretend that the job has started
+		wp_unschedule_event( wp_next_scheduled('akismet_schedule_cron_recheck'), 'akismet_schedule_cron_recheck' );
+		
+		// do the remaining comment
+		akismet_cron_recheck(0);
+		
+		// and make sure another job was not scheduled
+		$this->assertFalse( wp_next_scheduled('akismet_schedule_cron_recheck') );
+
+		// double check that all comments were processed
+		global $wpdb;
+		$waiting = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->commentmeta WHERE meta_key = 'akismet_error'" ) );
+		$this->assertEqual( 0, $waiting );
+	}
+	
+}
+
 // make sure the initial comment check is triggered, and the correct result stored, when wp_new_comment() is called
 class TestAkismetAutoCheckComment extends UnitTestCase {
 	var $comment;
