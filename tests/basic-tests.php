@@ -66,7 +66,20 @@ class TestAkismetRetry extends UnitTestCase {
 		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
 		$this->assertEqual( 'approved', wp_get_comment_status( $this->comment_id ) );
 	}
-	
+
+	function test_spawn_cron() {
+		// same as test_state_after_retry(), but this time trigger wp-cron.php itself
+		wp_schedule_single_event( time() - 30, 'akismet_schedule_cron_recheck' );
+
+		$cron_url = get_option( 'siteurl' ) . '/wp-cron.php?doing_wp_cron';
+		wp_remote_post( $cron_url, array('timeout' => 0.01, 'blocking' => true, 'sslverify' => apply_filters('https_local_ssl_verify', true)) );
+
+		clean_comment_cache( $this->comment_id );
+		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
+		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
+		$this->assertEqual( 'approved', wp_get_comment_status( $this->comment_id ) );
+	}
+
 	function test_state_after_retry_moderation() {
 		// turn on moderation
 		update_option('comment_moderation', 1);
@@ -148,10 +161,16 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 		$this->assertEqual( 'approved', wp_get_comment_status( $this->comment_id ) );
 		
 	}
+	
+	function test_spawn_cron() {
+		// no need to do this again
+	}
 
 }
 
 
+// this is a slow test, so don't run it unless we need to
+if ( defined('AKISMET_TEST_RETRY_QUEUE') && AKISMET_TEST_RETRY_QUEUE ) {
 class TestAkismetRetryQueue extends UnitTestCase {
 	var $comment_ids = array();
 	var $comment_author = 'alex';
@@ -236,6 +255,7 @@ class TestAkismetRetryQueue extends UnitTestCase {
 		$this->assertEqual( 0, $waiting );
 	}
 	
+}
 }
 
 // make sure the initial comment check is triggered, and the correct result stored, when wp_new_comment() is called
@@ -626,6 +646,23 @@ class TestDeleteOldSpam extends UnitTestCase {
 	function test_akismet_delete_old() {
 		akismet_delete_old();
 
+		// make sure it's not cached
+		clean_comment_cache( $this->comment_id );
+		
+		// comment should be gone now
+		$comment = get_comment( $this->comment_id );
+		$this->assertFalse( $comment );
+	}
+	
+	function test_spawn_cron() {
+		// same as test_akismet_delete_old(), but trigger wp-cron.php instead of calling akismet_delete_old() directly
+		
+		// schedule an overdue delete
+		wp_schedule_single_event( time() - 30, 'akismet_scheduled_delete' );
+		// run wp-cron.php
+		$cron_url = get_option( 'siteurl' ) . '/wp-cron.php?doing_wp_cron';
+		wp_remote_post( $cron_url, array('timeout' => 0.01, 'blocking' => true, 'sslverify' => apply_filters('https_local_ssl_verify', true)) );
+		
 		// make sure it's not cached
 		clean_comment_cache( $this->comment_id );
 		
