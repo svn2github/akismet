@@ -60,9 +60,10 @@ class TestAkismetRetry extends UnitTestCase {
 	
 	function test_state_after_retry() {
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
-		akismet_cron_recheck( 0 );
+		akismet_cron_recheck( );
 		
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
+		global $wpdb;
 		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
 		$this->assertEqual( 'approved', wp_get_comment_status( $this->comment_id ) );
 	}
@@ -85,7 +86,7 @@ class TestAkismetRetry extends UnitTestCase {
 		update_option('comment_moderation', 1);
 		
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
-		akismet_cron_recheck( 0 );
+		akismet_cron_recheck( );
 		
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
@@ -94,7 +95,7 @@ class TestAkismetRetry extends UnitTestCase {
 	}
 	
 	function test_history_after_retry() {
-		akismet_cron_recheck( 0 );
+		akismet_cron_recheck( );
 
 		// history should record a retry
 		$history = akismet_get_comment_history( $this->comment_id );
@@ -110,7 +111,7 @@ class TestAkismetRetry extends UnitTestCase {
 		wp_spam_comment( $this->comment_id );
 
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
-		akismet_cron_recheck( 0 );
+		akismet_cron_recheck( );
 
 
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
@@ -118,6 +119,21 @@ class TestAkismetRetry extends UnitTestCase {
 		// this should stay in the spam queue, because that's where the user put it
 		$this->assertEqual( 'spam', wp_get_comment_status( $this->comment_id ) );
 
+	}
+	
+	function test_stuck_queue() {
+		// test for a bug: if a comment is deleted but the meta value akismet_error remains, the retry queue would get stuck
+		global $wpdb;
+		$wpdb->query( $wpdb->prepare("DELETE FROM $wpdb->comments WHERE comment_ID = %d", $this->comment_id) );
+		clean_comment_cache( $this->comment_id );
+		
+		// the meta value is still there
+		$this->assertTrue( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
+		
+		akismet_cron_recheck();
+		
+		// the meta value should be gone now
+		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 	}
 }
 
@@ -288,7 +304,7 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 		// make sure we don't trigger the dupe filter
 		global $wpdb;
 		if ( $dupe_comment_id = $wpdb->get_var( $wpdb->prepare("SELECT comment_ID FROM $wpdb->comments WHERE comment_post_id = %d AND comment_author = %s AND comment_author_email = %s AND comment_content = %s", $this->comment['comment_post_ID'], $this->comment['comment_author'], $this->comment['comment_author_email'], $this->comment['comment_content']) ) ) {
-			wp_delete_comment( $dupe_comment_id );
+			wp_delete_comment( $dupe_comment_id, true );
 		}
 
 			
@@ -297,7 +313,7 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 	}
 	
 	function tearDown() {
-		wp_delete_comment( $this->comment_id );
+		wp_delete_comment( $this->comment_id, true );
 		update_option('akismet_discard_month', $this->old_discard_option);
 		update_option('comment_moderation', $this->old_moderation_option);
 		update_option('comment_whitelist', $this->old_whitelist_option);
@@ -414,7 +430,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 		// make sure we don't trigger the dupe filter
 		global $wpdb;
 		if ( $dupe_comment_id = $wpdb->get_var( $wpdb->prepare("SELECT comment_ID FROM $wpdb->comments WHERE comment_post_id = %d AND comment_author = %s AND comment_author_email = %s AND comment_content = %s", $this->comment['comment_post_ID'], $this->comment['comment_author'], $this->comment['comment_author_email'], $this->comment['comment_content']) ) ) {
-			wp_delete_comment( $dupe_comment_id );
+			wp_delete_comment( $dupe_comment_id, true );
 		}
 
 		unset( $GLOBALS['akismet_last_comment'] );
@@ -426,7 +442,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 	}
 	
 	function tearDown() {
-		wp_delete_comment( $this->comment_id );
+		wp_delete_comment( $this->comment_id, true );
 		update_option('akismet_discard_month', $this->old_discard_option);
 		update_option('comment_moderation', $this->old_moderation_option);
 		update_option('comment_whitelist', $this->old_whitelist_option);
@@ -637,10 +653,24 @@ class TestDeleteOldSpam extends UnitTestCase {
 			'comment_date' => date( 'Y-m-d H:i:s', $when ),
 			'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $when ),
 		));
+		
+		$comment = get_comment( $this->comment_id );
+		
+		// hack: make the plugin think that we just checked this comment but haven't yet updated meta.
+		global $akismet_last_comment;
+		$akismet_last_comment = (array) $comment;
+		// pretend that checking failed
+		$akismet_last_comment[ 'akismet_result' ] = 'error';
+		// and update commentmeta accordingly
+		akismet_auto_check_update_meta( $this->comment_id, $comment );
+		
+
+		$akismet_last_comment = null;
+
 	}
 	
 	function tearDown() {
-		wp_delete_comment( $this->comment_id );
+		wp_delete_comment( $this->comment_id, true );
 	}
 	
 	function test_akismet_delete_old() {
@@ -669,6 +699,18 @@ class TestDeleteOldSpam extends UnitTestCase {
 		// comment should be gone now
 		$comment = get_comment( $this->comment_id );
 		$this->assertFalse( $comment );
+	}
+	
+	function test_meta_deleted() {
+		// make sure the meta values are removed also
+		
+		akismet_delete_old();
+		
+		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_result' ) );
+		$this->assertFalse( akismet_get_comment_history( $this->comment_id ) );
+		
+		global $wpdb;
+		$this->assertFalse( $wpdb->get_results( $wpdb->prepare("SELECT * FROM $wpdb->commentmeta WHERE comment_id = %d", $this->comment_id ) ) );
 	}
 }
 
