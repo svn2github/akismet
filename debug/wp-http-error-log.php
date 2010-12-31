@@ -12,10 +12,10 @@ License: GPLv2
 function wp_http_request_log( $response, $type, $transport=null ) {
 	if ( $type == 'response' ) {
 		error_log( "$transport: {$response['response']['code']} {$response['response']['message']}" );
-		if ( isset($response['headers']['x-akismet-server']) )
-			error_log( "Akismet server: {$response['headers']['x-akismet-server']}" );
+		foreach ( $response['headers'] as $header => $value )
+			error_log( "\t". trim( $header ) . ': ' . trim($value) );
 		if ( isset($response['body']) )
-			error_log( "Response body: {$response['body']}" );
+			error_log( "Response body: " . trim($response['body']) );
 	}
 }
 
@@ -23,7 +23,8 @@ add_action( 'http_api_debug', 'wp_http_request_log', 10, 3 );
 
 function wp_http_response_log( $response, $r, $url ) {
 	
-	error_log( "{$response['response']['code']} {$response['response']['message']} for {$url}" );
+	error_log( "{$r['method']} {$url} HTTP/{$r['httpversion']}" );
+	error_log( "{$response['response']['code']} {$response['response']['message']}" );
 	return $response;
 }
 
