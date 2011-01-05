@@ -77,7 +77,6 @@ class TestAkismetRetry extends UnitTestCase {
 	}
 
 	function test_spawn_cron() {
-		error_log("starting test spawn_cron() for comment $this->comment_id");
 		$this->assertTrue( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		
 		// same as test_state_after_retry(), but this time trigger wp-cron.php itself
@@ -93,8 +92,6 @@ class TestAkismetRetry extends UnitTestCase {
 		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
 		$this->assertEqual( 'approved', wp_get_comment_status( $this->comment_id ) );
 		
-		echo '<pre>'; var_dump($this->comment_id, get_comment($this->comment_id) ); echo '</pre>';
-		error_log("finished test spawn_cron() for comment $this->comment_id");
 	}
 
 	function test_state_after_retry_moderation() {
