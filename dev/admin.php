@@ -25,12 +25,28 @@ function akismet_admin_init() {
         $hook = 'dashboard_page_akismet-stats-display';
     add_action('admin_head-'.$hook, 'akismet_stats_script');
     add_meta_box('akismet-status', __('Comment History'), 'akismet_comment_status_meta_box', 'comment', 'normal');
-	wp_register_style('akismet.css', AKISMET_PLUGIN_URL . 'akismet.css');
-	wp_enqueue_style('akismet.css');
-	wp_register_script('akismet.js', AKISMET_PLUGIN_URL . 'akismet.js', array('jquery'));
-	wp_enqueue_script('akismet.js');
 }
 add_action('admin_init', 'akismet_admin_init');
+
+add_action( 'admin_enqueue_scripts', 'akismet_load_js_and_css' );
+function akismet_load_js_and_css() {
+	global $hook_suffix;
+
+	if (
+		$hook_suffix == 'index.php'	# dashboard
+		|| $hook_suffix == 'edit-comments.php' 
+		|| $hook_suffix == 'comment.php' 
+		|| $hook_suffix == 'post.php' 
+		|| $hook_suffix == 'plugins_page_akismet-key-config'
+	) {
+		wp_register_style( 'akismet.css', AKISMET_PLUGIN_URL . 'akismet.css' );
+		wp_enqueue_style( 'akismet.css');
+	
+		wp_register_script( 'akismet.js', AKISMET_PLUGIN_URL . 'akismet.js', array('jquery') );
+		wp_enqueue_script( 'akismet.js' );
+	}
+}
+
 
 function akismet_nonce_field($action = -1) { return wp_nonce_field($action); }
 $akismet_nonce = 'akismet-update-key';
