@@ -367,7 +367,9 @@ function akismet_auto_check_comment( $commentdata ) {
 	
 	// if the response is neither true nor false, hold the comment for moderation and schedule a recheck
 	if ( 'true' != $response[1] && 'false' != $response[1] ) {
-		add_filter('pre_comment_approved', 'akismet_result_hold');
+		if ( !wp_get_current_user() ) {
+			add_filter('pre_comment_approved', 'akismet_result_hold');
+		}
 		wp_schedule_single_event( time() + 1200, 'akismet_schedule_cron_recheck' );
 	}
 	
