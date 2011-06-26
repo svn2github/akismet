@@ -704,7 +704,8 @@ class TestDeleteOldSpam extends UnitTestCase {
 		wp_schedule_single_event( time() - 30, 'akismet_scheduled_delete' );
 		// run wp-cron.php
 		$cron_url = get_option( 'siteurl' ) . '/wp-cron.php?doing_wp_cron';
-		wp_remote_post( $cron_url, array('timeout' => 0.01, 'blocking' => true, 'sslverify' => apply_filters('https_local_ssl_verify', true)) );
+		// NB using @ here to suppress a warning in class-http.php that's unrelated to what we're testing
+		@wp_remote_post( $cron_url, array('timeout' => 0.01, 'blocking' => true, 'sslverify' => apply_filters('https_local_ssl_verify', true)) );
 		
 		// make sure it's not cached
 		clean_comment_cache( $this->comment_id );
