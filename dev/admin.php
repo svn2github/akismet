@@ -711,6 +711,35 @@ function akismet_recheck_queue() {
 
 add_action('admin_action_akismet_recheck_queue', 'akismet_recheck_queue');
 
+// Adds an 'x' link next to author URLs, clicking will remove the author URL and show an undo link
+function akismet_remove_comment_author_url() {
+    if (!empty($_POST['id'])) {
+        global $wpdb;
+        $comment = get_comment( intval($_POST['id']), ARRAY_A );
+        if (current_user_can('edit_comment', $comment['comment_ID'])) {
+            $comment['comment_author_url'] = '';
+            print(wp_update_comment( $comment ));
+            die();
+        }
+    }
+}
+
+add_action('wp_ajax_comment_author_deurl', 'akismet_remove_comment_author_url');
+
+function akismet_add_comment_author_url() {
+    if (!empty($_POST['id']) && !empty($_POST['url'])) {
+        global $wpdb;
+        $comment = get_comment( intval($_POST['id']), ARRAY_A );
+        if (current_user_can('edit_comment', $comment['comment_ID'])) {
+            $comment['comment_author_url'] = esc_url($_POST['url']);
+            print(wp_update_comment( $comment ));
+            die();
+        }
+    }
+}
+
+add_action('wp_ajax_comment_author_reurl', 'akismet_add_comment_author_url');
+
 // Check connectivity between the WordPress blog and Akismet's servers.
 // Returns an associative array of server IP addresses, where the key is the IP address, and value is true (available) or false (unable to connect).
 function akismet_check_server_connectivity() {
@@ -763,4 +792,3 @@ function akismet_server_connectivity_ok() {
 	$servers = akismet_get_server_connectivity();
 	return !( empty($servers) || !count($servers) || count( array_filter($servers) ) < count($servers) );
 }
-
