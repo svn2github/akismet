@@ -672,8 +672,9 @@ class TestDeleteOldSpam extends UnitTestCase {
 		// hack: make the plugin think that we just checked this comment but haven't yet updated meta.
 		global $akismet_last_comment;
 		$akismet_last_comment = (array) $comment;
-		// pretend that checking failed
-		$akismet_last_comment[ 'akismet_result' ] = 'error';
+		$akismet_last_comment[ 'akismet_result' ] = 'true';
+		$akismet_last_comment[ 'comment_as_submitted' ] = (array) $comment;
+
 		// and update commentmeta accordingly
 		akismet_auto_check_update_meta( $this->comment_id, $comment );
 		
@@ -716,15 +717,108 @@ class TestDeleteOldSpam extends UnitTestCase {
 	}
 	
 	function test_meta_deleted() {
+		// confirm that the meta values are there, so we know the test is valid
+		$this->assertTrue( get_comment_meta( $this->comment_id, 'akismet_as_submitted' ) );
+		$this->assertTrue( get_comment_meta( $this->comment_id, 'akismet_result' ) );
+		$this->assertTrue( akismet_get_comment_history( $this->comment_id ) );
+		
+		do_action('akismet_scheduled_delete');
+		// lame that clean_comment_cache doesn't do this
+		wp_cache_delete( $this->comment_id, 'comment_meta' );
+		
 		// make sure the meta values are removed also
-		
-		akismet_delete_old();
-		
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_result' ) );
 		$this->assertFalse( akismet_get_comment_history( $this->comment_id ) );
-		
+		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_as_submitted' ) );
+
 		global $wpdb;
 		$this->assertFalse( $wpdb->get_results( $wpdb->prepare("SELECT * FROM $wpdb->commentmeta WHERE comment_id = %d", $this->comment_id ) ) );
+	}
+}
+
+
+class TestNoDeleteOldHam extends UnitTestCase {
+	var $comment_id;
+	var $comment_author = 'alex';
+
+	function setUp() {
+		$when = strtotime( '-21 days' );
+		
+		// a non-spam comment will not be deleted
+		$this->comment_id = wp_insert_comment( array(
+			'comment_post_ID' => 1,
+			'comment_author' => $this->comment_author,
+			'comment_author_email' => 'alex@example.com',
+			'comment_content' => 'This is a test: '. __CLASS__,
+			'comment_approved' => '1',
+			'comment_date' => date( 'Y-m-d H:i:s', $when ),
+			'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $when ),
+		));
+		
+		$this->comment = $comment = get_comment( $this->comment_id );
+		
+		// hack: make the plugin think that we just checked this comment but haven't yet updated meta.
+		global $akismet_last_comment;
+		$akismet_last_comment = (array) $comment;
+		$akismet_last_comment[ 'akismet_result' ] = 'false';
+		$akismet_last_comment[ 'comment_as_submitted' ] = (array) $comment;
+
+		// and update commentmeta accordingly
+		akismet_auto_check_update_meta( $this->comment_id, $comment );
+		
+
+		$akismet_last_comment = null;
+
+	}
+	
+	function tearDown() {
+		wp_delete_comment( $this->comment_id, true );
+	}
+	
+	function test_akismet_delete_old() {
+		akismet_delete_old();
+
+		// make sure it's not cached
+		clean_comment_cache( $this->comment_id );
+		
+		// comment should still be there
+		$comment = get_comment( $this->comment_id );
+		$this->assertEqual( $comment, $this->comment );
+	}
+	
+	function test_spawn_cron() {
+		// same as test_akismet_delete_old(), but trigger wp-cron.php instead of calling akismet_delete_old() directly
+		
+		// schedule an overdue delete
+		wp_schedule_single_event( time() - 30, 'akismet_scheduled_delete' );
+		// run wp-cron.php
+		$cron_url = get_option( 'siteurl' ) . '/wp-cron.php?doing_wp_cron';
+		// NB using @ here to suppress a warning in class-http.php that's unrelated to what we're testing
+		@wp_remote_post( $cron_url, array('timeout' => 0.01, 'blocking' => true, 'sslverify' => apply_filters('https_local_ssl_verify', true)) );
+		
+		// make sure it's not cached
+		clean_comment_cache( $this->comment_id );
+		
+		// comment should still be there
+		$comment = get_comment( $this->comment_id );
+		$this->assertEqual( $comment, $this->comment );
+	}
+	
+	function test_meta_deleted() {
+		// confirm that the meta values are there, so we know the test is valid
+		$this->assertTrue( get_comment_meta( $this->comment_id, 'akismet_as_submitted' ) );
+		$this->assertTrue( get_comment_meta( $this->comment_id, 'akismet_result' ) );
+		$this->assertTrue( akismet_get_comment_history( $this->comment_id ) );
+		
+		do_action('akismet_scheduled_delete');
+		// lame that clean_comment_cache doesn't do this
+		wp_cache_delete( $this->comment_id, 'comment_meta' );
+		
+		// make sure the regula meta values stay, but akismet_as_submitted is removed
+		$this->assertTrue( get_comment_meta( $this->comment_id, 'akismet_result' ) );
+		$this->assertTrue( akismet_get_comment_history( $this->comment_id ) );
+		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_as_submitted' ) );
+		
 	}
 }
 
