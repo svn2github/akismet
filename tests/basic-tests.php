@@ -1,4 +1,5 @@
 <?php
+define( 'AKISMET_TEST_POST_ID', 1 );
 
 class TestAkismetVersion extends UnitTestCase {
 	function test_version_constant() {
@@ -23,7 +24,7 @@ class TestAkismetRetry extends UnitTestCase {
 		$this->old_post = $_POST;
 
 		$this->comment_id = wp_insert_comment( array(
-			'comment_post_ID' => 1,
+			'comment_post_ID' => AKISMET_TEST_POST_ID,
 			'comment_author' => $this->comment_author,
 			'comment_author_email' => 'alex@example.com',
 			'comment_content' => 'This is a test: '. __CLASS__,
@@ -96,7 +97,7 @@ class TestAkismetRetry extends UnitTestCase {
 
 	function test_state_after_retry_moderation() {
 		// turn on moderation
-		update_option('comment_moderation', 1);
+		update_option('comment_moderation', AKISMET_TEST_POST_ID);
 		
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
 		akismet_cron_recheck( );
@@ -164,7 +165,7 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 	
 	function test_state_after_retry_moderation() {
 		// turn on moderation
-		update_option('comment_moderation', 1);
+		update_option('comment_moderation', AKISMET_TEST_POST_ID);
 		
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
 		akismet_cron_recheck( 0 );
@@ -217,7 +218,7 @@ class TestAkismetRetryQueue extends UnitTestCase {
 		// add 101 comments to the queue
 		for ( $i=0; $i < 101; $i++ ) {
 			$id = wp_insert_comment( array(
-				'comment_post_ID' => 1,
+				'comment_post_ID' => AKISMET_TEST_POST_ID,
 				'comment_author' => $this->comment_author,
 				'comment_author_email' => 'alex@example.com',
 				'comment_content' => 'This is a test: '. __CLASS__,
@@ -308,7 +309,7 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 		update_option('comment_whitelist', 0);
 		
 		$this->comment = array(
-			'comment_post_ID' => 1,
+			'comment_post_ID' => AKISMET_TEST_POST_ID,
 			'comment_author' => $this->comment_author,
 			'comment_author_email' => 'alex@example.com',
 			'comment_content' => $this->comment_content . ': '. __CLASS__,
@@ -434,7 +435,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 		update_option('comment_whitelist', 0);
 		
 		$this->comment = array(
-			'comment_post_ID' => 1,
+			'comment_post_ID' => AKISMET_TEST_POST_ID,
 			'comment_author' => $this->comment_author,
 			'comment_author_email' => 'alex@example.com',
 			'comment_content' => 'This is another test: blah',
@@ -658,7 +659,7 @@ class TestDeleteOldSpam extends UnitTestCase {
 		$when = strtotime( '-21 days' );
 		
 		$this->comment_id = wp_insert_comment( array(
-			'comment_post_ID' => 1,
+			'comment_post_ID' => AKISMET_TEST_POST_ID,
 			'comment_author' => $this->comment_author,
 			'comment_author_email' => 'alex@example.com',
 			'comment_content' => 'This is a test: '. __CLASS__,
@@ -746,7 +747,7 @@ class TestNoDeleteOldHam extends UnitTestCase {
 		
 		// a non-spam comment will not be deleted
 		$this->comment_id = wp_insert_comment( array(
-			'comment_post_ID' => 1,
+			'comment_post_ID' => AKISMET_TEST_POST_ID,
 			'comment_author' => $this->comment_author,
 			'comment_author_email' => 'alex@example.com',
 			'comment_content' => 'This is a test: '. __CLASS__,
