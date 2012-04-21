@@ -9,6 +9,20 @@ class TestAkismetVersion extends UnitTestCase {
 	}
 }
 
+class TestAkismetVerifyAPI extends UnitTestCase {
+	function test_verify_valid_key() {
+		$key = akismet_get_key();
+		$actual = akismet_verify_key( $key );
+		$this->assertEqual( 'valid', $actual );
+	}
+	
+	function test_verify_invalid_key() {
+		$key = 'antoehud';
+		$actual = akismet_verify_key( $key );
+		$this->assertEqual( 'invalid', $actual );
+	}
+}
+
 class TestAkismetRetry extends UnitTestCase {
 	var $comment_id;
 	var $comment_author = 'alex';
