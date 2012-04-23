@@ -91,6 +91,21 @@ class TestAkismetRetry extends UnitTestCase {
 		$this->assertEqual( 'approved', wp_get_comment_status( $this->comment_id ) );
 	}
 
+	function test_state_after_retry_too_old() {
+		// comment is too old for retrying
+		wp_update_comment( array(
+				'comment_ID' => $this->comment_id,
+				'comment_date' => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '-20 days' ) ),
+				) );
+		// trigger a cron event.  The error flag will be removed, but the status unchanged.
+		akismet_cron_recheck( );
+		
+		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
+		global $wpdb;
+		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_result', true ) );
+		$this->assertEqual( 'unapproved', wp_get_comment_status( $this->comment_id ) );
+	}
+
 	function test_spawn_cron() {
 		$this->assertTrue( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		
@@ -98,7 +113,7 @@ class TestAkismetRetry extends UnitTestCase {
 		wp_schedule_single_event( time() - 30, 'akismet_schedule_cron_recheck' );
 
 		$cron_url = get_option( 'siteurl' ) . '/wp-cron.php?doing_wp_cron';
-		wp_remote_post( $cron_url, array('timeout' => 0.01, 'blocking' => true, 'sslverify' => apply_filters('https_local_ssl_verify', true)) );
+		$r = wp_remote_post( $cron_url, array('timeout' => 10, 'blocking' => true, 'sslverify' => apply_filters('https_local_ssl_verify', true)) );
 		
 		clean_comment_cache( $this->comment_id );
 		wp_cache_delete( $this->comment_id, 'comment_meta' );
