@@ -178,6 +178,28 @@ class TestAkismetRetry extends UnitTestCase {
 		// the meta value should be gone now
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 	}
+	
+	function test_retry_invalid_key() {
+		global $wpcom_api_key;
+		
+		// make sure nothing is scheduled first
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
+		
+		$old_key = $wpcom_api_key;
+		
+		$wpcom_api_key = '000000000000'; // invalid key
+		
+		akismet_cron_recheck();
+
+		// no change to the comment
+		$this->assertTrue( 0 < get_comment_meta( $this->comment_id, 'akismet_error', true ) );
+		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_result', true ) );
+		$this->assertEqual( 'unapproved', wp_get_comment_status( $this->comment_id ) );
+		
+		// the next recheck should be scheduled for ~6 hours
+		$this->assertTrue( wp_next_scheduled('akismet_schedule_cron_recheck') - time() > 20000 );
+		$wpcom_api_key = $old_key;
+	}
 }
 
 class TestAkismetRetrySpam extends TestAkismetRetry {
