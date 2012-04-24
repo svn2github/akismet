@@ -108,6 +108,8 @@ class TestAkismetRetry extends UnitTestCase {
 
 	function test_spawn_cron() {
 		$this->assertTrue( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
+
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 		
 		// same as test_state_after_retry(), but this time trigger wp-cron.php itself
 		wp_schedule_single_event( time() - 30, 'akismet_schedule_cron_recheck' );
