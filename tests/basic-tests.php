@@ -350,6 +350,7 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 	var $old_whitelist_option;
 	var $comment_author = 'alex';
 	var $comment_content = 'This is a test';
+	var $comment_extra = array();
 	var $db_comment;
 	
 	function setUp() {
@@ -367,6 +368,10 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 			'comment_author_email' => 'alex@example.com',
 			'comment_content' => $this->comment_content . ': '. __CLASS__,
 		);
+		
+		if ( $this->comment_extra ) {
+			$this->comment = array_merge( $this->comment, $this->comment_extra );
+		}
 		
 		// make sure we don't trigger the dupe filter
 		global $wpdb;
@@ -429,6 +434,67 @@ class TestAkismetAutoCheckCommentSpam extends TestAkismetAutoCheckComment {
 	function test_auto_comment_check_history() {
 		$history = akismet_get_comment_history( $this->comment_id );
 		$this->assertEqual( 'check-spam', $history[0]['event'] );
+	}
+}
+
+class TestAkismetHamAlert extends TestAkismetAutoCheckComment {
+	var $comment_extra = array(
+		'test_alert_code' => '123',
+		);
+		
+	function setUp() {
+		delete_option( 'akismet_alert_code' );
+		delete_option( 'akismet_alert_msg' );
+		parent::setUp();
+	}
+	
+	function tearDown() {
+		parent::tearDown();
+		delete_option( 'akismet_alert_code' );
+		delete_option( 'akismet_alert_msg' );
+	}
+	
+	function test_alert() {
+		$this->assertEqual( get_option( 'akismet_alert_code' ), '123' );
+		$this->assertEqual( get_option( 'akismet_alert_msg' ), 'Test alert 123' );
+	}
+
+}
+
+class TestAkismetSpamAlert extends TestAkismetAutoCheckComment {
+	var $comment_author = 'viagra-test-123';
+	var $comment_extra = array(
+		'test_alert_code' => '123',
+		);
+		
+	function setUp() {
+		delete_option( 'akismet_alert_code' );
+		delete_option( 'akismet_alert_msg' );
+		parent::setUp();
+	}
+	
+	function tearDown() {
+		parent::tearDown();
+		delete_option( 'akismet_alert_code' );
+		delete_option( 'akismet_alert_msg' );
+	}
+	
+	function test_auto_comment_check_result() {
+		$this->assertEqual( 'spam', wp_get_comment_status( $this->comment_id ) );
+	}
+	
+	function test_auto_comment_check_meta_result() {
+		$this->assertEqual( 'true', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
+	}
+	
+	function test_auto_comment_check_history() {
+		$history = akismet_get_comment_history( $this->comment_id );
+		$this->assertEqual( 'check-spam', $history[0]['event'] );
+	}
+
+	function test_alert() {
+		$this->assertEqual( get_option( 'akismet_alert_code' ), '123' );
+		$this->assertEqual( get_option( 'akismet_alert_msg' ), 'Test alert 123' );
 	}
 }
 
