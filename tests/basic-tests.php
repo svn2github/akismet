@@ -498,6 +498,27 @@ class TestAkismetSpamAlert extends TestAkismetAutoCheckComment {
 	}
 }
 
+class TestAkismetClearAlert extends TestAkismetAutoCheckComment {
+		
+	function setUp() {
+		update_option( 'akismet_alert_code', '123' );
+		update_option( 'akismet_alert_msg', 'Test alert 123' );
+		parent::setUp();
+	}
+	
+	function tearDown() {
+		parent::tearDown();
+		delete_option( 'akismet_alert_code' );
+		delete_option( 'akismet_alert_msg' );
+	}
+	
+	function test_alert() {
+		$this->assertEqual( get_option( 'akismet_alert_code' ), '' );
+		$this->assertEqual( get_option( 'akismet_alert_msg' ), '' );
+	}
+
+}
+
 // test a comment that Akismet says is not spam, but the WP Comment Blacklist feature blocks
 class TestAkismetAutoCheckCommentWPBlacklist extends TestAkismetAutoCheckComment {
 	var $comment_author = 'alex';
