@@ -311,7 +311,7 @@ function akismet_admin_warnings() {
 	} elseif ( ( empty($_SERVER['SCRIPT_FILENAME']) || basename($_SERVER['SCRIPT_FILENAME']) == 'edit-comments.php' ) &&  wp_next_scheduled('akismet_schedule_cron_recheck') ) {
 		function akismet_warning() {
 			global $wpdb;
-				$waiting = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->commentmeta WHERE meta_key = 'akismet_error'" ) );
+				$waiting = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->commentmeta WHERE meta_key = 'akismet_error'" );
 				$next_check = human_time_diff( wp_next_scheduled('akismet_schedule_cron_recheck') );
 				if ( $waiting > 0 )
 					echo "

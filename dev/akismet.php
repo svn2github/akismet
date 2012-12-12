@@ -491,7 +491,7 @@ function akismet_cron_recheck() {
 		}
 	}
 	
-	$remaining = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->commentmeta WHERE meta_key = 'akismet_error'" ) );
+	$remaining = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->commentmeta WHERE meta_key = 'akismet_error'" );
 	if ( $remaining && !wp_next_scheduled('akismet_schedule_cron_recheck') ) {
 		wp_schedule_single_event( time() + 1200, 'akismet_schedule_cron_recheck' );
 	}
