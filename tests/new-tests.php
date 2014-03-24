@@ -11,14 +11,14 @@ class TestAkismetVersion extends UnitTestCase {
 
 class TestAkismetVerifyAPI extends UnitTestCase {
 	function test_verify_valid_key() {
-		$key = akismet_get_key();
-		$actual = akismet_verify_key( $key );
+		$key = Akismet::get_api_key();
+		$actual = Akismet::verify_key( $key );
 		$this->assertEqual( 'valid', $actual );
 	}
 	
 	function test_verify_invalid_key() {
 		$key = 'antoehud';
-		$actual = akismet_verify_key( $key );
+		$actual = Akismet::verify_key( $key );
 		$this->assertEqual( 'invalid', $actual );
 	}
 }
@@ -53,7 +53,7 @@ class TestAkismetRetry extends UnitTestCase {
 		// pretend that checking failed
 		$akismet_last_comment[ 'akismet_result' ] = 'error';
 		// and update commentmeta accordingly
-		akismet_auto_check_update_meta( $this->comment_id, $comment );
+		Akismet::auto_check_update_meta( $this->comment_id, $comment );
 		
 
 		$akismet_last_comment = null;
@@ -77,13 +77,13 @@ class TestAkismetRetry extends UnitTestCase {
 	function test_history_before_retry() {
 
 		// history should record a check-error
-		$history = akismet_get_comment_history( $this->comment_id );
+		$history = Akismet::get_comment_history( $this->comment_id );
 		$this->assertEqual( 'check-error', $history[0]['event'] );
 	}
 	
 	function test_state_after_retry() {
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
-		akismet_cron_recheck( );
+		Akismet::cron_recheck( );
 		
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		global $wpdb;
@@ -98,7 +98,7 @@ class TestAkismetRetry extends UnitTestCase {
 				'comment_date' => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '-20 days' ) ),
 				) );
 		// trigger a cron event.  The error flag will be removed, but the status unchanged.
-		akismet_cron_recheck( );
+		Akismet::cron_recheck( );
 		
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		global $wpdb;
@@ -131,7 +131,7 @@ class TestAkismetRetry extends UnitTestCase {
 		update_option('comment_moderation', 1);
 		
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
-		akismet_cron_recheck( );
+		Akismet::cron_recheck( );
 		
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
@@ -140,10 +140,10 @@ class TestAkismetRetry extends UnitTestCase {
 	}
 	
 	function test_history_after_retry() {
-		akismet_cron_recheck( );
+		Akismet::cron_recheck( );
 
 		// history should record a retry
-		$history = akismet_get_comment_history( $this->comment_id );
+		$history = Akismet::get_comment_history( $this->comment_id );
 		$this->assertEqual( 'cron-retry', $history[0]['event'] );
 		
 		// shh don't tell Nikolay I'm running more that one test per function
@@ -156,7 +156,7 @@ class TestAkismetRetry extends UnitTestCase {
 		wp_spam_comment( $this->comment_id );
 
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
-		akismet_cron_recheck( );
+		Akismet::cron_recheck( );
 
 
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
@@ -175,7 +175,7 @@ class TestAkismetRetry extends UnitTestCase {
 		// the meta value is still there
 		$this->assertTrue( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		
-		akismet_cron_recheck();
+		Akismet::cron_recheck();
 		
 		// the meta value should be gone now
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
@@ -191,7 +191,7 @@ class TestAkismetRetry extends UnitTestCase {
 		
 		$wpcom_api_key = '000000000000'; // invalid key
 		
-		akismet_cron_recheck();
+		Akismet::cron_recheck();
 
 		// no change to the comment
 		$this->assertTrue( 0 < get_comment_meta( $this->comment_id, 'akismet_error', true ) );
@@ -209,7 +209,7 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 	
 	function test_state_after_retry() {
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
-		akismet_cron_recheck( 0 );
+		Akismet::cron_recheck( 0 );
 		
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		$this->assertEqual( 'true', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
@@ -221,7 +221,7 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 		update_option('comment_moderation', AKISMET_TEST_POST_ID);
 		
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
-		akismet_cron_recheck( 0 );
+		Akismet::cron_recheck( 0 );
 		
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		$this->assertEqual( 'true', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
@@ -236,7 +236,7 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 		wp_set_comment_status( $this->comment_id, '1', true );
 
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
-		akismet_cron_recheck( 0 );
+		Akismet::cron_recheck( 0 );
 		
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		$this->assertEqual( 'true', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
@@ -286,7 +286,7 @@ class TestAkismetRetryQueue extends UnitTestCase {
 			// pretend that checking failed
 			$akismet_last_comment[ 'akismet_result' ] = 'error';
 			// and update commentmeta accordingly
-			akismet_auto_check_update_meta( $id, $comment );
+			Akismet::auto_check_update_meta( $id, $comment );
 		}
 
 		$akismet_last_comment = null;
@@ -318,7 +318,7 @@ class TestAkismetRetryQueue extends UnitTestCase {
 		// first make sure there's no job to confuse the test
 		$this->assertFalse( wp_next_scheduled('akismet_schedule_cron_recheck') );
 		
-		akismet_cron_recheck(0);
+		Akismet::cron_recheck(0);
 		
 		// now make sure the job is rescheduled
 		$this->assertTrue( wp_next_scheduled('akismet_schedule_cron_recheck') );
@@ -327,7 +327,7 @@ class TestAkismetRetryQueue extends UnitTestCase {
 		wp_unschedule_event( wp_next_scheduled('akismet_schedule_cron_recheck'), 'akismet_schedule_cron_recheck' );
 		
 		// do the remaining comment
-		akismet_cron_recheck(0);
+		Akismet::cron_recheck(0);
 		
 		// and make sure another job was not scheduled
 		$this->assertFalse( wp_next_scheduled('akismet_schedule_cron_recheck') );
@@ -402,7 +402,7 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 	}
 	
 	function test_auto_comment_check_history() {
-		$history = akismet_get_comment_history( $this->comment_id );
+		$history = Akismet::get_comment_history( $this->comment_id );
 		$this->assertEqual( 'check-ham', $history[0]['event'] );
 	}
 
@@ -432,7 +432,7 @@ class TestAkismetAutoCheckCommentSpam extends TestAkismetAutoCheckComment {
 	}
 	
 	function test_auto_comment_check_history() {
-		$history = akismet_get_comment_history( $this->comment_id );
+		$history = Akismet::get_comment_history( $this->comment_id );
 		$this->assertEqual( 'check-spam', $history[0]['event'] );
 	}
 }
@@ -488,7 +488,7 @@ class TestAkismetSpamAlert extends TestAkismetAutoCheckComment {
 	}
 	
 	function test_auto_comment_check_history() {
-		$history = akismet_get_comment_history( $this->comment_id );
+		$history = Akismet::get_comment_history( $this->comment_id );
 		$this->assertEqual( 'check-spam', $history[0]['event'] );
 	}
 
@@ -548,7 +548,7 @@ class TestAkismetAutoCheckCommentWPBlacklist extends TestAkismetAutoCheckComment
 	}
 	
 	function test_auto_comment_check_history() {
-		$history = akismet_get_comment_history( $this->comment_id );
+		$history = Akismet::get_comment_history( $this->comment_id );
 		$this->assertEqual( 'wp-blacklisted', $history[0]['event'] );
 		$this->assertEqual( 'check-ham', $history[1]['event'] );
 	}
@@ -686,7 +686,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 		// not submitted to Akismet
 		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
 
-		$history = akismet_get_comment_history( $this->comment_id );
+		$history = Akismet::get_comment_history( $this->comment_id );
 		// mystery status change should be recorded
 		$this->assertEqual( 'status-spam', $history[0]['event'] );
 	}
@@ -699,7 +699,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
 
 		// not mentioned in history, so the most recent entry is the auto comment check
-		$history = akismet_get_comment_history( $this->comment_id );
+		$history = Akismet::get_comment_history( $this->comment_id );
 		$this->assertEqual( 'status-unapproved', $history[0]['event'] );
 		$this->assertEqual( 'check-ham', $history[1]['event'] );
 	}
@@ -772,7 +772,7 @@ class TestAkismetSubmitActionsSpam extends TestAkismetSubmitActions {
 		// not submitted to Akismet
 		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
 
-		$history = akismet_get_comment_history( $this->comment_id );
+		$history = Akismet::get_comment_history( $this->comment_id );
 		// not mentioned in history, so the most recent entry is the auto comment check
 		$this->assertEqual( 'check-spam', $history[0]['event'] );
 	}
@@ -784,7 +784,7 @@ class TestAkismetSubmitActionsSpam extends TestAkismetSubmitActions {
 		// not submitted to Akismet
 		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
 
-		$history = akismet_get_comment_history( $this->comment_id );
+		$history = Akismet::get_comment_history( $this->comment_id );
 		// mystery status change should be recorded
 		$this->assertEqual( 'status-unapproved', $history[0]['event'] );
 	}
@@ -817,7 +817,7 @@ class TestDeleteOldSpam extends UnitTestCase {
 		$akismet_last_comment[ 'comment_as_submitted' ] = (array) $comment;
 
 		// and update commentmeta accordingly
-		akismet_auto_check_update_meta( $this->comment_id, $comment );
+		Akismet::auto_check_update_meta( $this->comment_id, $comment );
 		
 
 		$akismet_last_comment = null;
@@ -829,7 +829,7 @@ class TestDeleteOldSpam extends UnitTestCase {
 	}
 	
 	function test_akismet_delete_old() {
-		akismet_delete_old();
+		Akismet::delete_old_comments();
 
 		// make sure it's not cached
 		clean_comment_cache( $this->comment_id );
@@ -861,7 +861,7 @@ class TestDeleteOldSpam extends UnitTestCase {
 		// confirm that the meta values are there, so we know the test is valid
 		$this->assertTrue( get_comment_meta( $this->comment_id, 'akismet_as_submitted' ) );
 		$this->assertTrue( get_comment_meta( $this->comment_id, 'akismet_result' ) );
-		$this->assertTrue( akismet_get_comment_history( $this->comment_id ) );
+		$this->assertTrue( Akismet::get_comment_history( $this->comment_id ) );
 		
 		do_action('akismet_scheduled_delete');
 		// lame that clean_comment_cache doesn't do this
@@ -869,7 +869,7 @@ class TestDeleteOldSpam extends UnitTestCase {
 		
 		// make sure the meta values are removed also
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_result' ) );
-		$this->assertFalse( akismet_get_comment_history( $this->comment_id ) );
+		$this->assertFalse( Akismet::get_comment_history( $this->comment_id ) );
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_as_submitted' ) );
 
 		global $wpdb;
@@ -905,7 +905,7 @@ class TestNoDeleteOldHam extends UnitTestCase {
 		$akismet_last_comment[ 'comment_as_submitted' ] = (array) $comment;
 
 		// and update commentmeta accordingly
-		akismet_auto_check_update_meta( $this->comment_id, $comment );
+		Akismet::auto_check_update_meta( $this->comment_id, $comment );
 		
 
 		$akismet_last_comment = null;
@@ -917,7 +917,7 @@ class TestNoDeleteOldHam extends UnitTestCase {
 	}
 	
 	function test_akismet_delete_old() {
-		akismet_delete_old();
+		Akismet::delete_old_comments();
 
 		// make sure it's not cached
 		clean_comment_cache( $this->comment_id );
@@ -949,7 +949,7 @@ class TestNoDeleteOldHam extends UnitTestCase {
 		// confirm that the meta values are there, so we know the test is valid
 		$this->assertTrue( get_comment_meta( $this->comment_id, 'akismet_as_submitted' ) );
 		$this->assertTrue( get_comment_meta( $this->comment_id, 'akismet_result' ) );
-		$this->assertTrue( akismet_get_comment_history( $this->comment_id ) );
+		$this->assertTrue( Akismet::get_comment_history( $this->comment_id ) );
 		
 		do_action('akismet_scheduled_delete');
 		// lame that clean_comment_cache doesn't do this
@@ -957,7 +957,7 @@ class TestNoDeleteOldHam extends UnitTestCase {
 		
 		// make sure the regula meta values stay, but akismet_as_submitted is removed
 		$this->assertTrue( get_comment_meta( $this->comment_id, 'akismet_result' ) );
-		$this->assertTrue( akismet_get_comment_history( $this->comment_id ) );
+		$this->assertTrue( Akismet::get_comment_history( $this->comment_id ) );
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_as_submitted' ) );
 		
 	}
