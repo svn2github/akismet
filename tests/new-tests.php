@@ -7,6 +7,11 @@ class TestAkismetVersion extends UnitTestCase {
 		$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/akismet/akismet.php' );
 		$this->assertEqual( AKISMET_VERSION, $plugin_data['Version'] );
 	}
+	
+	function test_minimum_wp_version() {
+		// Note: get_plugin_data() does not return "Requires at least" value.
+		$this->assertEqual( 'AKISMET__MINIMUM_WP_VERSION', '3.0' ); // FIXME: what version?
+	}
 }
 
 class TestAkismetVerifyAPI extends UnitTestCase {
