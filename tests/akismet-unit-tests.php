@@ -39,7 +39,11 @@ function akismet_unit_tests() {
 	$suite = new TestSuite('All Akismet tests');
 
 	// add new files here as needed
-	$suite->addFile(dirname(__FILE__) . '/basic-tests.php');
+	if ( version_compare( AKISMET_VERSION, '3.0' ) < 0 ) {
+		$suite->addFile(dirname(__FILE__) . '/basic-tests.php');
+	} else {
+		$suite->addFile(dirname(__FILE__) . '/new-tests.php');
+	}
 
 ?>
 <div class="wrap">
