@@ -38,9 +38,13 @@ class TestAkismetRetry extends UnitTestCase {
 		// make sure the preexisting moderation options don't affect test results
 		$this->old_moderation_option = get_option('comment_moderation');
 		$this->old_whitelist_option = get_option('comment_whitelist');
+		#$this->old_api_key = get_option('wordpress_api_key');
 		update_option('comment_moderation', 0);
 		update_option('comment_whitelist', 0);
+		#update_option('wordpress_api_key', '000000000019');
 		$this->old_post = $_POST;
+		
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 
 		$this->comment_id = wp_insert_comment( array(
 			'comment_post_ID' => AKISMET_TEST_POST_ID,
@@ -53,15 +57,15 @@ class TestAkismetRetry extends UnitTestCase {
 		$comment = get_comment( $this->comment_id );
 		
 		// hack: make the plugin think that we just checked this comment but haven't yet updated meta.
-		global $akismet_last_comment;
 		$akismet_last_comment = (array) $comment;
 		// pretend that checking failed
 		$akismet_last_comment[ 'akismet_result' ] = 'error';
+		
+		Akismet::set_last_comment( $akismet_last_comment );
 		// and update commentmeta accordingly
 		Akismet::auto_check_update_meta( $this->comment_id, $comment );
-		
+		Akismet::set_last_comment( null );
 
-		$akismet_last_comment = null;
 	}
 	
 	function tearDown() {
@@ -69,7 +73,13 @@ class TestAkismetRetry extends UnitTestCase {
 		unset( $GLOBALS['akismet_last_comment'] );
 		update_option('comment_moderation', $this->old_moderation_option);
 		update_option('comment_whitelist', $this->old_whitelist_option);
+		#update_option('wordpress_api_key', $this->old_api_key);
 		$_POST = $this->old_post;
+	}
+
+	function test_schedule() {
+		// Checking a test assumption: make sure nothing is scheduled
+		$this->assertFalse( wp_next_scheduled('akismet_schedule_cron_recheck') );
 	}
 	
 	function test_state_before_retry() {
@@ -89,9 +99,8 @@ class TestAkismetRetry extends UnitTestCase {
 	function test_state_after_retry() {
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
 		Akismet::cron_recheck( );
-		
+
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
-		global $wpdb;
 		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
 		$this->assertEqual( 'approved', wp_get_comment_status( $this->comment_id ) );
 	}
@@ -192,9 +201,9 @@ class TestAkismetRetry extends UnitTestCase {
 		// make sure nothing is scheduled first
 		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 		
-		$old_key = $wpcom_api_key;
+		$old_key = get_option('wordpress_api_key');
 		
-		$wpcom_api_key = '000000000000'; // invalid key
+		update_option( 'wordpress_api_key', '000000000000' ); // invalid key
 		
 		Akismet::cron_recheck();
 
@@ -205,7 +214,7 @@ class TestAkismetRetry extends UnitTestCase {
 		
 		// the next recheck should be scheduled for ~6 hours
 		$this->assertTrue( wp_next_scheduled('akismet_schedule_cron_recheck') - time() > 20000 );
-		$wpcom_api_key = $old_key;
+		update_option( 'wordpress_api_key', $old_key );
 	}
 }
 
@@ -272,7 +281,7 @@ class TestAkismetRetryQueue extends UnitTestCase {
 		update_option('comment_moderation', 0);
 		update_option('comment_whitelist', 0);
 		$this->old_post = $_POST;
-
+		
 		// add 101 comments to the queue
 		for ( $i=0; $i < 101; $i++ ) {
 			$id = wp_insert_comment( array(
@@ -298,7 +307,7 @@ class TestAkismetRetryQueue extends UnitTestCase {
 		
 		// make sure there are no jobs scheduled
 		$j = 0;
-		while ( $j++ < 10 && wp_next_scheduled('akismet_schedule_cron_recheck') )
+		while ( $j++ < 1000 && wp_next_scheduled('akismet_schedule_cron_recheck') )
 			wp_unschedule_event( wp_next_scheduled('akismet_schedule_cron_recheck'), 'akismet_schedule_cron_recheck' );
 	}
 	
@@ -312,7 +321,7 @@ class TestAkismetRetryQueue extends UnitTestCase {
 
 		// make sure there are no jobs scheduled
 		$j = 0;
-		while ( $j++ < 10 && wp_next_scheduled('akismet_schedule_cron_recheck') )
+		while ( $j++ < 1000 && wp_next_scheduled('akismet_schedule_cron_recheck') )
 			wp_unschedule_event( wp_next_scheduled('akismet_schedule_cron_recheck'), 'akismet_schedule_cron_recheck' );
 	}
 	
@@ -384,7 +393,6 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 			wp_delete_comment( $dupe_comment_id, true );
 		}
 
-			
 		$this->comment_id = @wp_new_comment( $this->comment );
 		$this->db_comment = get_comment( $this->comment_id );
 	}
@@ -556,6 +564,29 @@ class TestAkismetAutoCheckCommentWPBlacklist extends TestAkismetAutoCheckComment
 		$history = Akismet::get_comment_history( $this->comment_id );
 		$this->assertEqual( 'wp-blacklisted', $history[0]['event'] );
 		$this->assertEqual( 'check-ham', $history[1]['event'] );
+	}
+}
+
+class TestAkismetAutoCheckLocalIP extends TestAkismetAutoCheckComment {
+	var $old_server;
+	
+	function setUp() {
+		$this->old_server = $_SERVER;
+		
+		// Replicate a bug where the only available IP address is a LAN IP
+		foreach( array( 'HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR' ) as $key ) {
+			unset( $_SERVER[ $key ] );
+		}
+		
+		$_SERVER[ 'REMOTE_ADDR' ] = '127.0.0.1';
+		
+		parent::setUp();
+	}
+	
+	function tearDown() {
+		parent::tearDown();
+		
+		$_SERVER = $this->old_server;
 	}
 }
 

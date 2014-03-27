@@ -49,11 +49,12 @@ function akismet_unit_tests() {
 <div class="wrap">
 <h2><?php _e('Akismet Unit Test Results'); ?></h2>
 <div class="narrow">
+<pre>
 <?php
 
 	$suite->run(new HtmlReporter());
 ?>
-
+</pre>
 </div>
 </div>
 
