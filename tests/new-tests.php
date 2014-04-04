@@ -1,5 +1,7 @@
 <?php
-define( 'AKISMET_TEST_POST_ID', 1 );
+
+// Use the latest post. Post #1 may not exist. Don't run this on a real site.
+define( 'AKISMET_TEST_POST_ID', get_posts( 'posts_per_page=1')[0]->ID );
 
 class TestAkismetVersion extends UnitTestCase {
 	function test_version_constant() {
