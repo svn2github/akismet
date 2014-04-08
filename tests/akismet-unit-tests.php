@@ -32,6 +32,14 @@ function akismet_unit_tests() {
 		return;
 	}
 	
+	if ( ! defined( 'DISABLE_WP_CRON' ) || ! DISABLE_WP_CRON ) {
+		?>
+		<p>Disable the WP cron job (<code>define( 'DISABLE_WP_CRON', true );</code> in <code>wp-config.php</code>) or it might run during the tests and give you unexpected results.</p>
+		<?php
+		
+		return;
+	}
+	
 	define('AKISMET_TEST_MODE', true);
 	
 	require_once('simpletest/unit_tester.php');
