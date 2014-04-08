@@ -234,7 +234,7 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 	
 	function test_state_after_retry_moderation() {
 		// turn on moderation
-		update_option('comment_moderation', AKISMET_TEST_POST_ID);
+		update_option( 'comment_moderation', 1 );
 		
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
 		Akismet::cron_recheck( 0 );
