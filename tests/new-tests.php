@@ -41,7 +41,7 @@ class TestAkismetRetry extends UnitTestCase {
 		$this->old_moderation_option = get_option('comment_moderation');
 		$this->old_whitelist_option = get_option('comment_whitelist');
 		#$this->old_api_key = get_option('wordpress_api_key');
-		update_option('comment_moderation', 0);
+		update_option('comment_moderation', '0');
 		update_option('comment_whitelist', 0);
 		#update_option('wordpress_api_key', '000000000019');
 		$this->old_post = $_POST;
@@ -144,7 +144,7 @@ class TestAkismetRetry extends UnitTestCase {
 
 	function test_state_after_retry_moderation() {
 		// turn on moderation
-		update_option('comment_moderation', 1);
+		update_option('comment_moderation', '1');
 		
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
 		Akismet::cron_recheck( );
@@ -234,7 +234,7 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 	
 	function test_state_after_retry_moderation() {
 		// turn on moderation
-		update_option( 'comment_moderation', 1 );
+		update_option( 'comment_moderation', '1' );
 		
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
 		Akismet::cron_recheck( 0 );
@@ -280,7 +280,7 @@ class TestAkismetRetryQueue extends UnitTestCase {
 		// make sure the preexisting moderation options don't affect test results
 		$this->old_moderation_option = get_option('comment_moderation');
 		$this->old_whitelist_option = get_option('comment_whitelist');
-		update_option('comment_moderation', 0);
+		update_option('comment_moderation', '0');
 		update_option('comment_whitelist', 0);
 		$this->old_post = $_POST;
 		
@@ -375,7 +375,7 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 		$this->old_moderation_option = get_option('comment_moderation');
 		$this->old_whitelist_option = get_option('comment_whitelist');
 		update_option('akismet_discard_month', 'false');
-		update_option('comment_moderation', 0);
+		update_option('comment_moderation', '0');
 		update_option('comment_whitelist', 0);
 		
 		$this->comment = array(
@@ -609,7 +609,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 		$this->old_moderation_option = get_option('comment_moderation');
 		$this->old_whitelist_option = get_option('comment_whitelist');
 		update_option('akismet_discard_month', 'false');
-		update_option('comment_moderation', 0);
+		update_option('comment_moderation', '0');
 		update_option('comment_whitelist', 0);
 		
 		$this->comment = array(
