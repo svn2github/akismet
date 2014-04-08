@@ -42,7 +42,7 @@ class TestAkismetRetry extends UnitTestCase {
 		$this->old_whitelist_option = get_option('comment_whitelist');
 		#$this->old_api_key = get_option('wordpress_api_key');
 		update_option('comment_moderation', '0');
-		update_option('comment_whitelist', 0);
+		update_option('comment_whitelist', '0');
 		#update_option('wordpress_api_key', '000000000019');
 		$this->old_post = $_POST;
 		
@@ -281,7 +281,7 @@ class TestAkismetRetryQueue extends UnitTestCase {
 		$this->old_moderation_option = get_option('comment_moderation');
 		$this->old_whitelist_option = get_option('comment_whitelist');
 		update_option('comment_moderation', '0');
-		update_option('comment_whitelist', 0);
+		update_option('comment_whitelist', '0');
 		$this->old_post = $_POST;
 		
 		// add 101 comments to the queue
@@ -376,7 +376,7 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 		$this->old_whitelist_option = get_option('comment_whitelist');
 		update_option('akismet_discard_month', 'false');
 		update_option('comment_moderation', '0');
-		update_option('comment_whitelist', 0);
+		update_option('comment_whitelist', '0');
 		
 		$this->comment = array(
 			'comment_post_ID' => AKISMET_TEST_POST_ID,
@@ -610,7 +610,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 		$this->old_whitelist_option = get_option('comment_whitelist');
 		update_option('akismet_discard_month', 'false');
 		update_option('comment_moderation', '0');
-		update_option('comment_whitelist', 0);
+		update_option('comment_whitelist', '0');
 		
 		$this->comment = array(
 			'comment_post_ID' => AKISMET_TEST_POST_ID,
