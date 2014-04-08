@@ -34,7 +34,7 @@ function akismet_unit_tests() {
 	
 	define('AKISMET_TEST_MODE', true);
 	
-	require_once('simpletest/autorun.php');
+	require_once('simpletest/unit_tester.php');
 
 	$suite = new TestSuite('All Akismet tests');
 
