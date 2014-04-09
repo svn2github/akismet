@@ -401,6 +401,10 @@ class TestAkismetAutoCheckCommentBase extends UnitTestCase {
 		$this->db_comment = get_comment( $this->comment_id );
 	}
 	
+	function test_that_this_class_actually_has_a_test_so_that_the_results_dont_appear_misleading() {
+		$this->assertTrue( true );
+	}
+	
 	function tearDown() {
 		wp_delete_comment( $this->comment_id, true );
 		update_option('akismet_discard_month', $this->old_discard_option);
