@@ -72,7 +72,7 @@ class TestAkismetRetry extends UnitTestCase {
 	
 	function tearDown() {
 		wp_delete_comment( $this->comment_id, true );
-		unset( $GLOBALS['akismet_last_comment'] );
+		Akismet::set_last_comment( null );
 		update_option('comment_moderation', $this->old_moderation_option);
 		update_option('comment_whitelist', $this->old_whitelist_option);
 		#update_option('wordpress_api_key', $this->old_api_key);
@@ -297,16 +297,18 @@ class TestAkismetRetryQueue extends UnitTestCase {
 			$comment = get_comment( $id );
 
 			// hack: make the plugin think that we just checked this comment but haven't yet updated meta.
-			global $akismet_last_comment;
 			$akismet_last_comment = (array) $comment;
 			// pretend that checking failed
 			$akismet_last_comment[ 'akismet_result' ] = 'error';
+
+			Akismet::set_last_comment( $akismet_last_comment );
+
 			// and update commentmeta accordingly
 			Akismet::auto_check_update_meta( $id, $comment );
 		}
-
-		$akismet_last_comment = null;
 		
+		Akismet::set_last_comment( null );
+
 		// make sure there are no jobs scheduled
 		$j = 0;
 		while ( $j++ < 1000 && wp_next_scheduled('akismet_schedule_cron_recheck') )
@@ -316,7 +318,7 @@ class TestAkismetRetryQueue extends UnitTestCase {
 	function tearDown() {
 		foreach ( $this->comment_ids as $id )
 			wp_delete_comment( $id, true );
-		unset( $GLOBALS['akismet_last_comment'] );
+		Akismet::set_last_comment( null );
 		update_option('comment_moderation', $this->old_moderation_option);
 		update_option('comment_whitelist', $this->old_whitelist_option);
 		$_POST = $this->old_post;
@@ -404,8 +406,7 @@ class TestAkismetAutoCheckCommentBase extends UnitTestCase {
 		update_option('akismet_discard_month', $this->old_discard_option);
 		update_option('comment_moderation', $this->old_moderation_option);
 		update_option('comment_whitelist', $this->old_whitelist_option);
-		unset( $GLOBALS['akismet_last_comment'] );
-		
+		Akismet::set_last_comment( null );
 	}
 }
 
@@ -626,7 +627,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 			wp_delete_comment( $dupe_comment_id, true );
 		}
 
-		unset( $GLOBALS['akismet_last_comment'] );
+		Akismet::set_last_comment( null );
 		
 		$this->comment_id = @wp_new_comment( $this->comment );
 		
@@ -640,7 +641,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 		update_option('comment_moderation', $this->old_moderation_option);
 		update_option('comment_whitelist', $this->old_whitelist_option);
 		$_POST = $this->old_post;
-		unset( $GLOBALS['akismet_last_comment'] );
+		Akismet::set_last_comment( null );
 	}
 	
 	function test_ajax_spam_button() {
@@ -849,18 +850,17 @@ class TestDeleteOldSpam extends UnitTestCase {
 		
 		$comment = get_comment( $this->comment_id );
 		
-		// hack: make the plugin think that we just checked this comment but haven't yet updated meta.
-		global $akismet_last_comment;
 		$akismet_last_comment = (array) $comment;
 		$akismet_last_comment[ 'akismet_result' ] = 'true';
 		$akismet_last_comment[ 'comment_as_submitted' ] = (array) $comment;
 
+		// hack: make the plugin think that we just checked this comment but haven't yet updated meta.
+		Akismet::set_last_comment( $akismet_last_comment );
+		
 		// and update commentmeta accordingly
 		Akismet::auto_check_update_meta( $this->comment_id, $comment );
 		
-
-		$akismet_last_comment = null;
-
+		Akismet::set_last_comment( null );
 	}
 	
 	function tearDown() {
@@ -937,18 +937,17 @@ class TestNoDeleteOldHam extends UnitTestCase {
 		
 		$this->comment = $comment = get_comment( $this->comment_id );
 		
-		// hack: make the plugin think that we just checked this comment but haven't yet updated meta.
-		global $akismet_last_comment;
 		$akismet_last_comment = (array) $comment;
 		$akismet_last_comment[ 'akismet_result' ] = 'false';
 		$akismet_last_comment[ 'comment_as_submitted' ] = (array) $comment;
 
+		// hack: make the plugin think that we just checked this comment but haven't yet updated meta.
+		Akismet::set_last_comment( $akismet_last_comment );
+
 		// and update commentmeta accordingly
 		Akismet::auto_check_update_meta( $this->comment_id, $comment );
 		
-
-		$akismet_last_comment = null;
-
+		Akismet::set_last_comment( null );
 	}
 	
 	function tearDown() {
