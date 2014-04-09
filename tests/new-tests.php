@@ -358,7 +358,7 @@ class TestAkismetRetryQueue extends UnitTestCase {
 }
 
 // make sure the initial comment check is triggered, and the correct result stored, when wp_new_comment() is called
-class TestAkismetAutoCheckComment extends UnitTestCase {
+class TestAkismetAutoCheckCommentBase extends UnitTestCase {
 	var $comment;
 	var $comment_id;
 	var $old_discard_option;
@@ -407,7 +407,9 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 		unset( $GLOBALS['akismet_last_comment'] );
 		
 	}
-	
+}
+
+class TestAkismetAutoCheckComment extends TestAkismetAutoCheckCommentBase {
 	function test_auto_comment_check_result() {
 		$this->assertEqual( 'approved', wp_get_comment_status( $this->comment_id ) );
 	}
@@ -435,7 +437,7 @@ class TestAkismetAutoCheckComment extends UnitTestCase {
 }
 
 // same as for TestAkismetAutoCheckComment, but with a spam comment
-class TestAkismetAutoCheckCommentSpam extends TestAkismetAutoCheckComment {
+class TestAkismetAutoCheckCommentSpam extends TestAkismetAutoCheckCommentBase {
 	var $comment_author = 'viagra-test-123';
 	
 	function test_auto_comment_check_result() {
@@ -452,7 +454,7 @@ class TestAkismetAutoCheckCommentSpam extends TestAkismetAutoCheckComment {
 	}
 }
 
-class TestAkismetHamAlert extends TestAkismetAutoCheckComment {
+class TestAkismetHamAlert extends TestAkismetAutoCheckCommentBase {
 	var $comment_extra = array(
 		'test_alert_code' => '123',
 		);
@@ -476,7 +478,7 @@ class TestAkismetHamAlert extends TestAkismetAutoCheckComment {
 
 }
 
-class TestAkismetSpamAlert extends TestAkismetAutoCheckComment {
+class TestAkismetSpamAlert extends TestAkismetAutoCheckCommentBase {
 	var $comment_author = 'viagra-test-123';
 	var $comment_extra = array(
 		'test_alert_code' => '123',
@@ -513,8 +515,7 @@ class TestAkismetSpamAlert extends TestAkismetAutoCheckComment {
 	}
 }
 
-class TestAkismetClearAlert extends TestAkismetAutoCheckComment {
-		
+class TestAkismetClearAlert extends TestAkismetAutoCheckCommentBase {
 	function setUp() {
 		update_option( 'akismet_alert_code', '123' );
 		update_option( 'akismet_alert_msg', 'Test alert 123' );
@@ -535,7 +536,7 @@ class TestAkismetClearAlert extends TestAkismetAutoCheckComment {
 }
 
 // test a comment that Akismet says is not spam, but the WP Comment Blacklist feature blocks
-class TestAkismetAutoCheckCommentWPBlacklist extends TestAkismetAutoCheckComment {
+class TestAkismetAutoCheckCommentWPBlacklist extends TestAkismetAutoCheckCommentBase {
 	var $comment_author = 'alex';
 	var $comment_content = 'Comment containing akismet-special-wp-blacklist-test string';
 	var $old_blacklist_setting;
@@ -569,7 +570,7 @@ class TestAkismetAutoCheckCommentWPBlacklist extends TestAkismetAutoCheckComment
 	}
 }
 
-class TestAkismetAutoCheckLocalIP extends TestAkismetAutoCheckComment {
+class TestAkismetAutoCheckLocalIP extends TestAkismetAutoCheckCommentBase {
 	var $old_server;
 	
 	function setUp() {
@@ -1000,6 +1001,3 @@ class TestNoDeleteOldHam extends UnitTestCase {
 		
 	}
 }
-
-
-?>
