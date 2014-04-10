@@ -100,7 +100,7 @@ class TestAkismetRetry extends UnitTestCase {
 	
 	function test_state_after_retry() {
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
-		Akismet::cron_recheck( );
+		Akismet::cron_recheck();
 
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
@@ -116,7 +116,7 @@ class TestAkismetRetry extends UnitTestCase {
 				'comment_date' => strftime( '%Y-%m-%d %H:%M:%S', strtotime( '-20 days' ) ),
 				) );
 		// trigger a cron event.  The error flag will be removed, but the status unchanged.
-		Akismet::cron_recheck( );
+		Akismet::cron_recheck();
 		
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		global $wpdb;
@@ -151,7 +151,7 @@ class TestAkismetRetry extends UnitTestCase {
 		update_option('comment_moderation', '1');
 		
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
-		Akismet::cron_recheck( );
+		Akismet::cron_recheck();
 		
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
@@ -162,7 +162,7 @@ class TestAkismetRetry extends UnitTestCase {
 	}
 	
 	function test_history_after_retry() {
-		Akismet::cron_recheck( );
+		Akismet::cron_recheck();
 
 		// history should record a retry
 		$history = Akismet::get_comment_history( $this->comment_id );
@@ -179,7 +179,7 @@ class TestAkismetRetry extends UnitTestCase {
 		wp_spam_comment( $this->comment_id );
 
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
-		Akismet::cron_recheck( );
+		Akismet::cron_recheck();
 
 
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
@@ -237,7 +237,7 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 	
 	function test_state_after_retry() {
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
-		Akismet::cron_recheck( 0 );
+		Akismet::cron_recheck();
 		
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		$this->assertEqual( 'true', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
@@ -251,7 +251,7 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 		update_option( 'comment_moderation', '1' );
 		
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
-		Akismet::cron_recheck( 0 );
+		Akismet::cron_recheck();
 		
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		$this->assertEqual( 'true', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
@@ -268,7 +268,7 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 		wp_set_comment_status( $this->comment_id, '1', true );
 
 		// trigger a cron event and make sure the error status is replaced with 'false' (not spam)
-		Akismet::cron_recheck( 0 );
+		Akismet::cron_recheck();
 		
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		$this->assertEqual( 'true', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
@@ -353,7 +353,7 @@ class TestAkismetRetryQueue extends UnitTestCase {
 		// first make sure there's no job to confuse the test
 		$this->assertFalse( wp_next_scheduled('akismet_schedule_cron_recheck') );
 		
-		Akismet::cron_recheck(0);
+		Akismet::cron_recheck();
 		
 		// now make sure the job is rescheduled
 		$this->assertTrue( wp_next_scheduled('akismet_schedule_cron_recheck') );
@@ -362,7 +362,7 @@ class TestAkismetRetryQueue extends UnitTestCase {
 		wp_unschedule_event( wp_next_scheduled('akismet_schedule_cron_recheck'), 'akismet_schedule_cron_recheck' );
 		
 		// do the remaining comment
-		Akismet::cron_recheck(0);
+		Akismet::cron_recheck();
 		
 		// and make sure another job was not scheduled
 		$this->assertFalse( wp_next_scheduled('akismet_schedule_cron_recheck') );
