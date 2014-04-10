@@ -369,7 +369,7 @@ class TestAkismetRetryQueue extends UnitTestCase {
 
 		// double check that all comments were processed
 		global $wpdb;
-		$waiting = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->commentmeta WHERE meta_key = 'akismet_error'" ) );
+		$waiting = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->commentmeta WHERE meta_key = 'akismet_error'" );
 		$this->assertEqual( 0, $waiting );
 		
 		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
