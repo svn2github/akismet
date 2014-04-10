@@ -105,6 +105,8 @@ class TestAkismetRetry extends UnitTestCase {
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
 		$this->assertEqual( 'approved', wp_get_comment_status( $this->comment_id ) );
+		
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 	}
 
 	function test_state_after_retry_too_old() {
@@ -120,6 +122,8 @@ class TestAkismetRetry extends UnitTestCase {
 		global $wpdb;
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_result', true ) );
 		$this->assertEqual( 'unapproved', wp_get_comment_status( $this->comment_id ) );
+		
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 	}
 
 	function test_spawn_cron() {
@@ -133,9 +137,9 @@ class TestAkismetRetry extends UnitTestCase {
 		$cron_url = get_option( 'siteurl' ) . '/wp-cron.php?doing_wp_cron';
 		$r = wp_remote_post( $cron_url, array('timeout' => 10, 'blocking' => true, 'sslverify' => apply_filters('https_local_ssl_verify', true)) );
 		
-		clean_comment_cache( $this->comment_id );
-		wp_cache_delete( $this->comment_id, 'comment_meta' );
-		
+		wp_cache_init();
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
+	
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
 		$this->assertEqual( 'approved', wp_get_comment_status( $this->comment_id ) );
@@ -153,6 +157,8 @@ class TestAkismetRetry extends UnitTestCase {
 		$this->assertEqual( 'false', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
 		// this should be in the pending queue now, since moderation is enabled
 		$this->assertEqual( 'unapproved', wp_get_comment_status( $this->comment_id ) );
+		
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 	}
 	
 	function test_history_after_retry() {
@@ -162,6 +168,7 @@ class TestAkismetRetry extends UnitTestCase {
 		$history = Akismet::get_comment_history( $this->comment_id );
 		$this->assertEqual( 'cron-retry', $history[0]['event'] );
 		
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 		// shh don't tell Nikolay I'm running more that one test per function
 	}
 	
@@ -180,6 +187,7 @@ class TestAkismetRetry extends UnitTestCase {
 		// this should stay in the spam queue, because that's where the user put it
 		$this->assertEqual( 'spam', wp_get_comment_status( $this->comment_id ) );
 
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 	}
 	
 	function test_stuck_queue() {
@@ -195,6 +203,8 @@ class TestAkismetRetry extends UnitTestCase {
 		
 		// the meta value should be gone now
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
+		
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 	}
 	
 	function test_retry_invalid_key() {
@@ -217,6 +227,8 @@ class TestAkismetRetry extends UnitTestCase {
 		// the next recheck should be scheduled for ~6 hours
 		$this->assertTrue( wp_next_scheduled('akismet_schedule_cron_recheck') - time() > 20000 );
 		update_option( 'wordpress_api_key', $old_key );
+		
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 	}
 }
 
@@ -230,6 +242,8 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		$this->assertEqual( 'true', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
 		$this->assertEqual( 'spam', wp_get_comment_status( $this->comment_id ) );
+		
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 	}
 	
 	function test_state_after_retry_moderation() {
@@ -243,6 +257,8 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 		$this->assertEqual( 'true', get_comment_meta( $this->comment_id, 'akismet_result', true ) );
 		// this should be in the pending queue now, since moderation is enabled
 		$this->assertEqual( 'spam', wp_get_comment_status( $this->comment_id ) );
+		
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 	}
 
 	// if the user clicks the Spam button on a comment that is awaiting retry, we still should re-check
@@ -259,6 +275,7 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 		// this should stay in the approved queue, because that's where the user put it
 		$this->assertEqual( 'approved', wp_get_comment_status( $this->comment_id ) );
 		
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 	}
 	
 	function test_spawn_cron() {
@@ -354,6 +371,8 @@ class TestAkismetRetryQueue extends UnitTestCase {
 		global $wpdb;
 		$waiting = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->commentmeta WHERE meta_key = 'akismet_error'" ) );
 		$this->assertEqual( 0, $waiting );
+		
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 	}
 	
 }
@@ -931,8 +950,8 @@ class TestDeleteOldSpam extends UnitTestCase {
 		// NB using @ here to suppress a warning in class-http.php that's unrelated to what we're testing
 		@wp_remote_post( $cron_url, array('timeout' => 10, 'blocking' => true, 'sslverify' => apply_filters('https_local_ssl_verify', true)) );
 		
-		// make sure it's not cached
-		clean_comment_cache( $this->comment_id );
+		wp_cache_init();
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 		
 		// comment should be gone now
 		$comment = get_comment( $this->comment_id );
@@ -1018,8 +1037,8 @@ class TestNoDeleteOldHam extends UnitTestCase {
 		// NB using @ here to suppress a warning in class-http.php that's unrelated to what we're testing
 		@wp_remote_post( $cron_url, array('timeout' => 0.01, 'blocking' => true, 'sslverify' => apply_filters('https_local_ssl_verify', true)) );
 		
-		// make sure it's not cached
-		clean_comment_cache( $this->comment_id );
+		wp_cache_init();
+		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 		
 		// comment should still be there
 		$comment = get_comment( $this->comment_id );
