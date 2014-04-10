@@ -205,6 +205,9 @@ class TestAkismetRetry extends UnitTestCase {
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_error', true ) );
 		
 		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
+		
+		// Clean up anything else in commentmeta, like akismet_history
+		$wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->commentmeta WHERE comment_id = %d", $this->comment_id ) );
 	}
 	
 	function test_retry_invalid_key() {
