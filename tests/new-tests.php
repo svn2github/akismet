@@ -459,6 +459,45 @@ class TestAkismetAutoCheckCommentSpam extends TestAkismetAutoCheckCommentBase {
 	}
 }
 
+// same as for TestAkismetAutoCheckComment, but with a spam comment that should be discarded
+class TestAkismetAutoCheckCommentSpamDiscard extends TestAkismetAutoCheckCommentBase {
+	var $comment_author = 'viagra-test-123';
+	var $old_strictness = null;
+	var $comment_extra = array(
+		'test_discard' => '1',
+		);
+	
+	function setUp() {
+		$this->old_strictness = get_option('akismet_strictness');
+		update_option( 'akismet_strictness', '1');
+		
+		parent::setUp();
+	}
+	
+	function tearDown() {
+		parent::tearDown();
+		
+		update_option( 'akismet_strictness', $this->old_strictness );
+	}
+	
+	function test_discard() {
+		$last_comment = Akismet::get_last_comment();
+		$this->assertEqual( 'discard', $last_comment['akismet_pro_tip'] );
+	}
+
+}
+
+// No discard header = not discarded
+class TestAkismetAutoCheckCommentSpamNoDiscard extends TestAkismetAutoCheckCommentSpamDiscard {
+	var $comment_extra = array(
+		);
+
+	function test_discard() {
+		$last_comment = Akismet::get_last_comment();
+		$this->assertFalse( isset( $last_comment['akismet_pro_tip'] ) );
+	}
+}
+
 class TestAkismetHamAlert extends TestAkismetAutoCheckCommentBase {
 	var $comment_extra = array(
 		'test_alert_code' => '123',
