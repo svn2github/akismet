@@ -457,8 +457,26 @@ class TestAkismetAutoCheckComment extends TestAkismetAutoCheckCommentBase {
 		$this->assertEqual( $this->db_comment->comment_author_email, $as_submitted['comment_author_email'] );
 		$this->assertEqual( $this->db_comment->comment_author, $as_submitted['comment_author'] );
 		$this->assertEqual( $this->db_comment->comment_content, $as_submitted['comment_content'] );
-		$this->assertEqual( $this->db_comment->comment_post_ID, $as_submitted['comment_post_ID'] );
 		$this->assertEqual( $this->db_comment->comment_agent, $as_submitted['user_agent'] );
+	}
+	
+	function test_auto_comment_as_submitted_fields() {
+		$as_submitted = get_comment_meta( $this->comment_id, 'akismet_as_submitted', true );
+		
+		// Check that these fields are saved in as_submitted; they're important for spam/ham reports.
+		foreach ( array( 'blog' , 'blog_charset' , 'blog_lang' , 'comment_author', 'comment_author_email', 'comment_content', 'is_test', 'permalink', 'user_agent' ) as $keep_this_key ) {
+			$this->assertTrue( isset( $as_submitted[ $keep_this_key ] ), $keep_this_key . " is not set." );
+		}
+		
+		// There are a number of fields that we opt not to store in akismet_as_submitted.
+		foreach ( array( 'comment_post_ID', 'comment_parent', 'akismet_comment_nonce', 'SERVER_SOFTWARE', 'REQUEST_URI', 'PATH', 'SCRIPT_URI' ) as $discard_this_key ) {
+			$this->assertFalse( isset( $as_submitted[ $discard_this_key ] ), $discard_this_key . " is set." );
+		}
+		
+		// We don't want any of the POST_* fields.
+		foreach ( $as_submitted as $key => $val ) {
+			$this->assertFalse( substr( $key, 0, 5 ) === 'POST_', $key . " should not have been saved in as_submitted." );
+		}
 	}
 
 }
