@@ -12,7 +12,7 @@ class TestAkismetVersion extends UnitTestCase {
 	
 	function test_minimum_wp_version() {
 		// Note: get_plugin_data() does not return "Requires at least" value.
-		$this->assertEqual( AKISMET__MINIMUM_WP_VERSION, '3.0' );
+		$this->assertEqual( AKISMET__MINIMUM_WP_VERSION, '3.1' );
 	}
 }
 
