@@ -685,11 +685,13 @@ class TestAkismetSubmitActions extends UnitTestCase {
 	var $old_moderation_option;
 	var $old_whitelist_option;
 	var $old_post;
+	var $old_get;
 	var $comment_author = 'alex';
 	
 	function setUp() {
 		// make sure we don't accidentally die()
 		$this->old_post = $_POST;
+		$this->old_get = $_GET;
 		$this->old_discard_option = get_option('akismet_discard_month');
 		$this->old_moderation_option = get_option('comment_moderation');
 		$this->old_whitelist_option = get_option('comment_whitelist');
@@ -724,6 +726,7 @@ class TestAkismetSubmitActions extends UnitTestCase {
 		update_option('comment_moderation', $this->old_moderation_option);
 		update_option('comment_whitelist', $this->old_whitelist_option);
 		$_POST = $this->old_post;
+		$_GET = $this->old_get;
 		Akismet::set_last_comment( null );
 	}
 	
@@ -759,21 +762,25 @@ class TestAkismetSubmitActions extends UnitTestCase {
 	function test_bulk_spam_button() {
 		global $wp_filter;
 		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
-		$_POST['action'] = 'delete-comment';
-		$_POST['action'] = 'spam';
+		$_GET['action'] = 'spam';
+		
 		wp_spam_comment( $this->comment_id );
 		
-		$this->assertEqual('true', get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+		$user_result = get_comment_meta( $this->comment_id, 'akismet_user_result', true );
+		
+		$this->assertEqual('true', $user_result, "akismet_user_result = " . var_export( $user_result, true ) );
 	}
 	
 	function test_bulk_unspam_button() {
 		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
-		$_POST['action'] = 'delete-comment';
-		$_POST['action'] = 'unspam';
+		$_GET['action'] = 'unspam';
+		
 		wp_unspam_comment( $this->comment_id );
 
+		$user_result = get_comment_meta( $this->comment_id, 'akismet_user_result', true );
+
 		// this is not submitted to Akismet because the status didn't change (transition was from approved to approved)
-		$this->assertEqual(null, get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
+		$this->assertEqual(null, $user_result, "akismet_user_result = " . var_export( $user_result, true ) );
 	}
 	
 	function test_edit_comment_spam() {
@@ -882,7 +889,7 @@ class TestAkismetSubmitActionsSpam extends TestAkismetSubmitActions {
 	
 	function test_bulk_unspam_button() {
 		// fake an ajax button click - we can't call admin-ajax.php directly because it calls die()
-		$_POST['action'] = 'unspam';
+		$_GET['action'] = 'unspam';
 		wp_unspam_comment( $this->comment_id );
 
 		$this->assertEqual('false', get_comment_meta( $this->comment_id, 'akismet_user_result', true ) );
