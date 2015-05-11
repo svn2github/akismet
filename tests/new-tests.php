@@ -166,7 +166,13 @@ class TestAkismetRetry extends UnitTestCase {
 
 		// history should record a retry
 		$history = Akismet::get_comment_history( $this->comment_id );
-		$this->assertEqual( 'cron-retry', $history[0]['event'] );
+		
+		if ( get_called_class() == 'TestAkismetRetry' ) {
+			$this->assertEqual( 'cron-retry-ham', $history[0]['event'] );
+		}
+		else {
+			$this->assertEqual( 'cron-retry-spam', $history[0]['event'] );
+		}
 		
 		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
 		// shh don't tell Nikolay I'm running more that one test per function
