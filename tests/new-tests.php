@@ -17,6 +17,12 @@ class TestAkismetVersion extends UnitTestCase {
 }
 
 class TestAkismetVerifyAPI extends UnitTestCase {
+	function test_deactivate_key() {
+		$key = Akismet::get_api_key();
+		$actual = Akismet::deactivate_key( $key );
+		$this->assertEqual( 'deactivated', $actual );
+	}
+
 	function test_verify_valid_key() {
 		$key = Akismet::get_api_key();
 		$actual = Akismet::verify_key( $key );
