@@ -4,7 +4,25 @@ class Akismet_Admin {
 	const NONCE = 'akismet-update-key';
 
 	private static $initiated = false;
-	private static $notices = array();
+	private static $notices   = array();
+	private static $allowed   = array(
+	    'a' => array(
+	        'href' => true,
+	        'title' => true,
+	    ),
+	    'b' => array(),
+	    'code' => array(),
+	    'del' => array(
+	        'datetime' => true,
+	    ),
+	    'em' => array(),
+	    'i' => array(),
+	    'q' => array(
+	        'cite' => true,
+	    ),
+	    'strike' => array(),
+	    'strong' => array(),
+	);
 
 	public static function init() {
 		if ( ! self::$initiated ) {
@@ -257,8 +275,10 @@ class Akismet_Admin {
 				if ( in_array( $akismet_user->status, array( 'active', 'active-dunning', 'no-sub' ) ) )
 					update_option( 'wordpress_api_key', $api_key );
 				
-				if (  $akismet_user->status == 'active' )
+				if ( $akismet_user->status == 'active' )
 					self::$notices['status'] = 'new-key-valid';
+				elseif ( $akismet_user->status == 'notice' )
+					self::$notices['status'] = $akismet_user;
 				else
 					self::$notices['status'] = $akismet_user->status;
 			}
@@ -918,8 +938,24 @@ class Akismet_Admin {
 		if ( !empty( $type ) )
 			Akismet::view( 'notice', compact( 'type' ) );
 		elseif ( !empty( self::$notices ) ) {
-			foreach ( self::$notices as $type )
-				Akismet::view( 'notice', compact( 'type' ) );
+			foreach ( self::$notices as $type ) {
+				if ( is_object( $type ) ) {
+					$notice_header = $notice_text = '';
+					
+					if ( property_exists( $type, 'notice_header' ) )
+						$notice_header = wp_kses( $type->notice_header, self::$allowed );
+				
+					if ( property_exists( $type, 'notice_text' ) )
+						$notice_text = wp_kses( $type->notice_text, self::$allowed );
+					
+					if ( property_exists( $type, 'status' ) ) {
+						$type = wp_kses( $type->status, self::$allowed );
+						Akismet::view( 'notice', compact( 'type', 'notice_header', 'notice_text' ) );
+					}
+				}
+				else
+					Akismet::view( 'notice', compact( 'type' ) );
+			}				
 		}
 	}
 
