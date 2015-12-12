@@ -30,6 +30,10 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 3.1.6 =
+
+* Update some strings to allow for the proper plural forms in all languages.
+
 = 3.1.5 =
 *Release Date - 13 October 2015*
 
