@@ -32,6 +32,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 = 3.1.6 =
 
+* Improve the notices shown after activating Akismet.
 * Update some strings to allow for the proper plural forms in all languages.
 
 = 3.1.5 =
