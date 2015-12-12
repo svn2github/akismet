@@ -887,11 +887,11 @@ class Akismet_Admin {
 					$cleaning_up      = __( 'Cleaning up spam takes time.' , 'akismet');
 
 					if ( $total_in_days > 1 )
-						$time_saved = $cleaning_up . ' ' . sprintf( __( 'Akismet has saved you %s days!' , 'akismet'), number_format_i18n( $total_in_days ) );
+						$time_saved = $cleaning_up . ' ' . sprintf( _n( 'Akismet has saved you %s day!', 'Akismet has saved you %s days!', $total_in_days, 'akismet' ), number_format_i18n( $total_in_days ) );
 					elseif ( $total_in_hours > 1 )
-						$time_saved = $cleaning_up . ' ' . sprintf( __( 'Akismet has saved you %d hours!' , 'akismet'), $total_in_hours );
+						$time_saved = $cleaning_up . ' ' . sprintf( _n( 'Akismet has saved you %d hour!', 'Akismet has saved you %d hours!', $total_in_hours, 'akismet' ), $total_in_hours );
 					elseif ( $total_in_minutes >= 30 )
-						$time_saved = $cleaning_up . ' ' . sprintf( __( 'Akismet has saved you %d minutes!' , 'akismet'), $total_in_minutes );
+						$time_saved = $cleaning_up . ' ' . sprintf( _n( 'Akismet has saved you %d minute!', 'Akismet has saved you %d minutes!', $total_in_minutes, 'akismet' ), $total_in_minutes );
 				}
 
 				Akismet::view( 'notice', array( 'type' => 'active-notice', 'time_saved' => $time_saved ) );
