@@ -34,6 +34,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 * Added documentation for the 'akismet_comment_nonce' filter.
 * The post-install activation button is now accessible to screen readers and keyboard-only users.
+* Fixed a bug that was preventing the "Remove author URL" feature from working in WordPress 4.4
 
 = 3.1.6 =
 *Release Date - 14 December 2015*
