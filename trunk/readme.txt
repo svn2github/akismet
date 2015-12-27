@@ -33,6 +33,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 = 3.1.7 =
 
 * Added documentation for the 'akismet_comment_nonce' filter.
+* The post-install activation button is now accessible to screen readers and keyboard-only users.
 
 = 3.1.6 =
 *Release Date - 14 December 2015*
