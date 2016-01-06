@@ -956,7 +956,7 @@ class Akismet {
 	public static function load_form_js() {
 		// WP < 3.3 can't enqueue a script this late in the game and still have it appear in the footer.
 		// Once we drop support for everything pre-3.3, this can change back to a single enqueue call.
-		wp_register_script( 'akismet-form', AKISMET__PLUGIN_URL . '_inc/form.js', array(), AKISMET_VERSION, true );
+		wp_register_script( 'akismet-form', plugin_dir_url( __FILE__ ) . '_inc/form.js', array(), AKISMET_VERSION, true );
 		add_action( 'wp_footer', array( 'Akismet', 'print_form_js' ) );
 		add_action( 'admin_footer', array( 'Akismet', 'print_form_js' ) );
 	}

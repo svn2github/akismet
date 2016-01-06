@@ -30,6 +30,10 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 3.1.8 =
+
+* Fixed a bug preventing Akismet from being used with some plugins that rewrite admin URLs.
+
 = 3.1.7 =
 *Release Date - 4 January 2016*
 
