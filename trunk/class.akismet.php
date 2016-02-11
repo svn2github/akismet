@@ -119,13 +119,19 @@ class Akismet {
 				$comment["POST_{$key}"] = $value;
 		}
 
-		$ignore = array( 'HTTP_COOKIE', 'HTTP_COOKIE2', 'PHP_AUTH_PW' );
-
 		foreach ( $_SERVER as $key => $value ) {
-			if ( !in_array( $key, $ignore ) && is_string($value) )
-				$comment["$key"] = $value;
-			else
-				$comment["$key"] = '';
+			if ( ! is_string( $value ) ) {
+				continue;
+			}
+
+			if ( preg_match( "/^HTTP_COOKIE/", $key ) ) {
+				continue;
+			}
+
+			// Send any potentially useful $_SERVER vars, but avoid sending junk we don't need.
+			if ( preg_match( "/^(HTTP_|REMOTE_ADDR|REQUEST_URI|DOCUMENT_URI)/", $key ) ) {
+				$form[ "$key" ] = $value;
+			}
 		}
 
 		$post = get_post( $comment['comment_post_ID'] );
