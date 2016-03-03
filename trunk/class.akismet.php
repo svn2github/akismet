@@ -718,15 +718,20 @@ class Akismet {
 			&& intval( $comment1['comment_post_ID'] ) == intval( $comment2['comment_post_ID'] )
 			&& (
 				// The comment author length max is 255 characters, limited by the TINYTEXT column type.
-				substr( $comment1['comment_author'], 0, 255 ) == substr( $comment2['comment_author'], 0, 255 )
-				|| substr( stripslashes( $comment1['comment_author'] ), 0, 255 ) == substr( $comment2['comment_author'], 0, 255 )
-				|| substr( $comment1['comment_author'], 0, 255 ) == substr( stripslashes( $comment2['comment_author'] ), 0, 255 )
+				// If the comment author includes multibyte characters right around the 255-byte mark, they
+				// may be stripped when the author is saved in the DB, so a 300+ char author may turn into
+				// a 253-char author when it's saved, not 255 exactly.  The longest possible character is
+				// theoretically 6 bytes, so we'll only look at the first 248 bytes to be safe.
+				substr( $comment1['comment_author'], 0, 248 ) == substr( $comment2['comment_author'], 0, 248 )
+				|| substr( stripslashes( $comment1['comment_author'] ), 0, 248 ) == substr( $comment2['comment_author'], 0, 248 )
+				|| substr( $comment1['comment_author'], 0, 248 ) == substr( stripslashes( $comment2['comment_author'] ), 0, 248 )
 				)
 			&& (
 				// The email max length is 100 characters, limited by the VARCHAR(100) column type.
-				substr( $comment1['comment_author_email'], 0, 100 ) == substr( $comment2['comment_author_email'], 0, 100 )
-				|| substr( stripslashes( $comment1['comment_author_email'] ), 0, 100 ) == substr( $comment2['comment_author_email'], 0, 100 )
-				|| substr( $comment1['comment_author_email'], 0, 100 ) == substr( stripslashes( $comment2['comment_author_email'] ), 0, 100 )
+				// Same argument as above for only looking at the first 93 characters.
+				substr( $comment1['comment_author_email'], 0, 93 ) == substr( $comment2['comment_author_email'], 0, 93 )
+				|| substr( stripslashes( $comment1['comment_author_email'] ), 0, 93 ) == substr( $comment2['comment_author_email'], 0, 93 )
+				|| substr( $comment1['comment_author_email'], 0, 93 ) == substr( stripslashes( $comment2['comment_author_email'] ), 0, 93 )
 				// Very long emails can be truncated and then stripped if the [0:100] substring isn't a valid address.
 				|| ( ! $comment1['comment_author_email'] && strlen( $comment2['comment_author_email'] ) > 100 )
 				|| ( ! $comment2['comment_author_email'] && strlen( $comment1['comment_author_email'] ) > 100 )

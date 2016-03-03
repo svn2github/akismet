@@ -35,6 +35,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 * Fixed a bug preventing Akismet from being used with some plugins that rewrite admin URLs.
 * Reduced the amount of bandwidth used on Akismet API calls
 * Reduced the amount of space Akismet uses in the database
+* Fixed a bug that could cause comments caught as spam to be placed in the Pending queue.
 
 = 3.1.7 =
 *Release Date - 4 January 2016*
