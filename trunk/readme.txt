@@ -30,6 +30,10 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 3.1.9 =
+
+* Add compatibility with Jetpack so that Jetpack can automatically configure Akismet settings when appropriate.
+
 = 3.1.8 =
 *Release Date - 4 March 2016*
 
