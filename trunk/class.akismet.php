@@ -165,7 +165,7 @@ class Akismet {
 
 			// Send any potentially useful $_SERVER vars, but avoid sending junk we don't need.
 			if ( preg_match( "/^(HTTP_|REMOTE_ADDR|REQUEST_URI|DOCUMENT_URI)/", $key ) ) {
-				$form[ "$key" ] = $value;
+				$comment[ "$key" ] = $value;
 			}
 		}
 
