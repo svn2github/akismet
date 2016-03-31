@@ -651,7 +651,10 @@ class TestAkismetAutoCheckCommentWPBlacklist extends TestAkismetAutoCheckComment
 
 	function test_auto_comment_check_result() {
 		// comment status will be spam because of the WP blacklist feature
-		$this->assertEqual( 'spam', wp_get_comment_status( $this->comment_id ) );
+		// As of https://core.trac.wordpress.org/changeset/34726, blacklisted comments go into trash by default.
+		// Just check that it's not approved or pending.
+		$this->assertNotEqual( 'approved', wp_get_comment_status( $this->comment_id ) )
+			&& $this->assertNotEqual( 'unapproved', wp_get_comment_status( $this->comment_id ) );
 	}
 	
 	function test_auto_comment_check_meta_result() {
