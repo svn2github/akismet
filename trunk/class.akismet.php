@@ -105,7 +105,7 @@ class Akismet {
 	 * @param mixed  $old_value   The old option value.
 	 * @param mixed  $value       The new option value.
 	 */
-	function updated_option( $old_value, $value ) {
+	public static function updated_option( $old_value, $value ) {
 		// Not an API call
 		if ( ! class_exists( 'WPCOM_JSON_API_Update_Option_Endpoint' ) ) {
 			return;

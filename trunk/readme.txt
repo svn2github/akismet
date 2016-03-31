@@ -34,6 +34,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 * Fixed a bug that could cause comments caught as spam to be placed in the Pending queue.
 * Fixed a bug that could have resulted in comments that were caught by the core WordPress comment blacklist not to have a corresponding History entry.
+* Fixed a bug that could have caused avoidable PHP warnings in the error log.
 
 = 3.1.9 =
 *Release Date - 28 March 2016*
