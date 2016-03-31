@@ -289,7 +289,9 @@ class Akismet {
 					elseif ( self::$last_comment['akismet_result'] == 'false' ) {
 						update_comment_meta( $comment->comment_ID, 'akismet_result', 'false' );
 						self::update_comment_history( $comment->comment_ID, '', 'check-ham' );
-						if ( $comment->comment_approved == 'spam' ) {
+						// Status could be spam or trash, depending on the WP version and whether this change applies:
+						// https://core.trac.wordpress.org/changeset/34726
+						if ( $comment->comment_approved == 'spam' || $comment->comment_approved == 'trash' ) {
 							if ( wp_blacklist_check($comment->comment_author, $comment->comment_author_email, $comment->comment_author_url, $comment->comment_content, $comment->comment_author_IP, $comment->comment_agent) )
 								self::update_comment_history( $comment->comment_ID, '', 'wp-blacklisted' );
 							else
