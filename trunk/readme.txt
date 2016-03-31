@@ -30,6 +30,10 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 3.1.10 =
+
+* Fixed a bug that could cause comments caught as spam to be placed in the Pending queue.
+
 = 3.1.9 =
 *Release Date - 28 March 2016*
 

@@ -748,7 +748,7 @@ class Akismet {
 		$comment1 = (array) $comment1;
 		$comment2 = (array) $comment2;
 		
-		return (
+		$comments_match = (
 			   isset( $comment1['comment_post_ID'], $comment2['comment_post_ID'] )
 			&& intval( $comment1['comment_post_ID'] ) == intval( $comment2['comment_post_ID'] )
 			&& (
@@ -760,6 +760,9 @@ class Akismet {
 				substr( $comment1['comment_author'], 0, 248 ) == substr( $comment2['comment_author'], 0, 248 )
 				|| substr( stripslashes( $comment1['comment_author'] ), 0, 248 ) == substr( $comment2['comment_author'], 0, 248 )
 				|| substr( $comment1['comment_author'], 0, 248 ) == substr( stripslashes( $comment2['comment_author'] ), 0, 248 )
+				// Certain long comment author names will be truncated to nothing, depending on their encoding.
+				|| ( ! $comment1['comment_author'] && strlen( $comment2['comment_author'] ) > 248 )
+				|| ( ! $comment2['comment_author'] && strlen( $comment1['comment_author'] ) > 248 )
 				)
 			&& (
 				// The email max length is 100 characters, limited by the VARCHAR(100) column type.
@@ -772,6 +775,8 @@ class Akismet {
 				|| ( ! $comment2['comment_author_email'] && strlen( $comment1['comment_author_email'] ) > 100 )
 			)
 		);
+
+		return $comments_match;
 	}
 	
 	// Does the supplied comment match the details of the one most recently stored in self::$last_comment?
