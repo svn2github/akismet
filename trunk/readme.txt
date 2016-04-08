@@ -30,6 +30,10 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 3.1.11 =
+
+* Fixed a bug that could cause the "Check for Spam" button to skip some comments.
+
 = 3.1.10 =
 *Release Date - 1 April 2016*
 
