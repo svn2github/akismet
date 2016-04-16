@@ -506,7 +506,8 @@ class Akismet {
 			 ( isset( $_POST['unspam'] ) && (int) $_POST['unspam'] == 1 ) ||
 			 ( isset( $_POST['comment_status'] )  && in_array( $_POST['comment_status'], array( 'spam', 'unspam' ) ) ) ||
 			 ( isset( $_GET['action'] )  && in_array( $_GET['action'], array( 'spam', 'unspam', 'spamcomment', 'unspamcomment', ) ) ) ||
-			 ( isset( $_POST['action'] ) && in_array( $_POST['action'], array( 'editedcomment' ) ) )
+			 ( isset( $_POST['action'] ) && in_array( $_POST['action'], array( 'editedcomment' ) ) ) ||
+			 ( isset( $_GET['for'] ) && ( 'jetpack' == $_GET['for'] ) ) // Moderation via WP.com notifications/WP app/etc.
 		 ) {
 			if ( $new_status == 'spam' && ( $old_status == 'approved' || $old_status == 'unapproved' || !$old_status ) ) {
 				return self::submit_spam_comment( $comment->comment_ID );
