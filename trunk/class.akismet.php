@@ -825,8 +825,13 @@ class Akismet {
 
 	// filter handler used to return a spam result to pre_comment_approved
 	public static function last_comment_status( $approved, $comment ) {
+		if ( is_null( self::$last_comment_result ) ) {
+			// We didn't have reason to store the result of the last check.
+			return $approved;
+		}
+
 		// Only do this if it's the correct comment
-		if ( is_null(self::$last_comment_result) || ! self::matches_last_comment( $comment ) ) {
+		if ( ! self::matches_last_comment( $comment ) ) {
 			self::log( "comment_is_spam mismatched comment, returning unaltered $approved" );
 			return $approved;
 		}
