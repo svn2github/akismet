@@ -35,6 +35,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 * Fixed a bug that could cause the "Check for Spam" button to skip some comments.
 * Fixed a bug that could prevent some spam submissions from being sent to Akismet.
 * Updated all links to use https:// when possible.
+* Disabled Akismet debug logging unless WP_DEBUG and WP_DEBUG_LOG are both enabled.
 
 = 3.1.10 =
 *Release Date - 1 April 2016*
