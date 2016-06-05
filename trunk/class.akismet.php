@@ -469,7 +469,60 @@ class Akismet {
 		return ( is_array( $response ) && ! empty( $response[1] ) ) ? $response[1] : false;
 	}
 	
-	
+	public static function recheck_comment( $id, $recheck_reason = 'recheck_queue' ) {
+		$is_spam = self::check_db_comment( $id );
+
+		$c = get_comment( $id, ARRAY_A );
+		
+		if ( ! $c ) {
+			return false;
+		}
+
+		$c['user_ip']      = $c['comment_author_IP'];
+		$c['user_agent']   = $c['comment_agent'];
+		$c['referrer']     = '';
+		$c['blog']         = get_bloginfo('url');
+		$c['blog_lang']    = get_locale();
+		$c['blog_charset'] = get_option('blog_charset');
+		$c['permalink']    = get_permalink($c['comment_post_ID']);
+
+		$c['user_role'] = '';
+		if ( isset( $c['user_ID'] ) )
+			$c['user_role'] = Akismet::get_user_roles($c['user_ID']);
+
+		if ( Akismet::is_test_mode() )
+			$c['is_test'] = 'true';
+
+		add_comment_meta( $c['comment_ID'], 'akismet_rechecking', true );
+
+		$response = Akismet::http_post( Akismet::build_query( $c ), 'comment-check' );
+
+		if ( 'true' == $response[1] ) {
+			wp_set_comment_status( $c['comment_ID'], 'spam' );
+			update_comment_meta( $c['comment_ID'], 'akismet_result', 'true' );
+			delete_comment_meta( $c['comment_ID'], 'akismet_error' );
+			delete_comment_meta( $c['comment_ID'], 'akismet_delayed_moderation_email' );
+			Akismet::update_comment_history( $c['comment_ID'], '', 'recheck-spam' );
+		} elseif ( 'false' == $response[1] ) {
+			update_comment_meta( $c['comment_ID'], 'akismet_result', 'false' );
+			delete_comment_meta( $c['comment_ID'], 'akismet_error' );
+			delete_comment_meta( $c['comment_ID'], 'akismet_delayed_moderation_email' );
+			Akismet::update_comment_history( $c['comment_ID'], '', 'recheck-ham' );
+		} else {
+			// abnormal result: error
+			update_comment_meta( $c['comment_ID'], 'akismet_result', 'error' );
+			Akismet::update_comment_history(
+				$c['comment_ID'],
+				'',
+				'recheck-error',
+				array( 'response' => substr( $response[1], 0, 50 ) )
+			);
+		}
+
+		delete_comment_meta( $c['comment_ID'], 'akismet_rechecking' );
+
+		return $response[1];
+	}
 
 	public static function transition_comment_status( $new_status, $old_status, $comment ) {
 		

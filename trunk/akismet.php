@@ -58,3 +58,6 @@ if ( is_admin() ) {
 //add wrapper class around deprecated akismet functions that are referenced elsewhere
 require_once( AKISMET__PLUGIN_DIR . 'wrapper.php' );
 
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	require_once( AKISMET__PLUGIN_DIR . 'class.akismet-cli.php' );
+}
