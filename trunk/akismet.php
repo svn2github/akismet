@@ -50,7 +50,7 @@ require_once( AKISMET__PLUGIN_DIR . 'class.akismet-widget.php' );
 
 add_action( 'init', array( 'Akismet', 'init' ) );
 
-if ( is_admin() ) {
+if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
 	require_once( AKISMET__PLUGIN_DIR . 'class.akismet-admin.php' );
 	add_action( 'init', array( 'Akismet_Admin', 'init' ) );
 }

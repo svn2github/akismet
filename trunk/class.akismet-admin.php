@@ -361,15 +361,37 @@ class Akismet_Admin {
 			return;
 		}
 
+		$result_counts = self::recheck_queue_portion( empty( $_POST['offset'] ) ? 0 : $_POST['offset'], empty( $_POST['limit'] ) ? 100 : $_POST['limit'] );
+
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			wp_send_json( array(
+				'counts' => $result_counts,
+			));
+		}
+		else {
+			$redirect_to = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : admin_url( 'edit-comments.php' );
+			wp_safe_redirect( $redirect_to );
+			exit;
+		}
+	}
+	
+	public static function recheck_queue_portion( $start = 0, $limit = 100 ) {
+		global $wpdb;
+		
 		$paginate = '';
 
-		if ( isset( $_POST['limit'] ) && isset( $_POST['offset'] ) ) {
-			$paginate = $wpdb->prepare( " LIMIT %d OFFSET %d", array( $_POST['limit'], $_POST['offset'] ) );
+		if ( $limit <= 0 ) {
+			$limit = 100;
 		}
 
-		$moderation = $wpdb->get_col( "SELECT * FROM {$wpdb->comments} WHERE comment_approved = '0'{$paginate}" );
+		if ( $start < 0 ) {
+			$start = 0;
+		}
+
+		$moderation = $wpdb->get_col( $wpdb->prepare( "SELECT * FROM {$wpdb->comments} WHERE comment_approved = '0' LIMIT %d OFFSET %d", $limit, $start ) );
 
 		$result_counts = array(
+			'processed' => count( $moderation ),
 			'spam' => 0,
 			'ham' => 0,
 			'error' => 0,
@@ -385,22 +407,11 @@ class Akismet_Admin {
 				++$result_counts['ham'];
 			}
 			else {
-				var_dump( $is_spam );
 				++$result_counts['error'];
 			}
 		}
 
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-			wp_send_json( array(
-				'processed' => count((array) $moderation),
-				'counts' => $result_counts,
-			));
-		}
-		else {
-			$redirect_to = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : admin_url( 'edit-comments.php' );
-			wp_safe_redirect( $redirect_to );
-			exit;
-		}
+		return $result_counts;
 	}
 
 	// Adds an 'x' link next to author URLs, clicking will remove the author URL and show an undo link

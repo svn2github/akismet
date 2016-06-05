@@ -177,7 +177,7 @@ jQuery( function ( $ ) {
 				'limit': limit
 			},
 			function(result) {
-				if (result.processed < limit) {
+				if (result.counts.processed < limit) {
 					window.location.reload();
 				}
 				else {
