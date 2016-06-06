@@ -51,8 +51,6 @@ class Akismet_CLI extends WP_CLI_Command {
 	 * @alias recheck-queue
 	 */
 	public function recheck_queue() {
-		global $wpdb;
-		
 		$batch_size = 100;
 		$start = 0;
 		
