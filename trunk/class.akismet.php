@@ -64,7 +64,7 @@ class Akismet {
 	}
 
 	public static function check_key_status( $key, $ip = null ) {
-		return self::http_post( Akismet::build_query( array( 'key' => $key, 'blog' => get_option('home') ) ), 'verify-key', $ip );
+		return self::http_post( Akismet::build_query( array( 'key' => $key, 'blog' => get_option( 'home' ) ) ), 'verify-key', $ip );
 	}
 
 	public static function verify_key( $key, $ip = null ) {
@@ -77,7 +77,7 @@ class Akismet {
 	}
 
 	public static function deactivate_key( $key ) {
-		$response = self::http_post( Akismet::build_query( array( 'key' => $key, 'blog' => get_option('home') ) ), 'deactivate' );
+		$response = self::http_post( Akismet::build_query( array( 'key' => $key, 'blog' => get_option( 'home' ) ) ), 'deactivate' );
 
 		if ( $response[1] != 'deactivated' )
 			return 'failed';
@@ -124,7 +124,7 @@ class Akismet {
 		$comment['user_ip']      = self::get_ip_address();
 		$comment['user_agent']   = self::get_user_agent();
 		$comment['referrer']     = self::get_referer();
-		$comment['blog']         = get_option('home');
+		$comment['blog']         = get_option( 'home' );
 		$comment['blog_lang']    = get_locale();
 		$comment['blog_charset'] = get_option('blog_charset');
 		$comment['permalink']    = get_permalink( $comment['comment_post_ID'] );
@@ -455,7 +455,7 @@ class Akismet {
 		$c['user_ip']        = $c['comment_author_IP'];
 		$c['user_agent']     = $c['comment_agent'];
 		$c['referrer']       = '';
-		$c['blog']           = get_option('home');
+		$c['blog']           = get_option( 'home' );
 		$c['blog_lang']      = get_locale();
 		$c['blog_charset']   = get_option('blog_charset');
 		$c['permalink']      = get_permalink($c['comment_post_ID']);
@@ -481,7 +481,7 @@ class Akismet {
 		$c['user_ip']      = $c['comment_author_IP'];
 		$c['user_agent']   = $c['comment_agent'];
 		$c['referrer']     = '';
-		$c['blog']         = get_bloginfo('url');
+		$c['blog']         = get_option( 'home' );
 		$c['blog_lang']    = get_locale();
 		$c['blog_charset'] = get_option('blog_charset');
 		$c['permalink']    = get_permalink($c['comment_post_ID']);
@@ -591,7 +591,7 @@ class Akismet {
 		if ( $as_submitted && is_array( $as_submitted ) && isset( $as_submitted['comment_content'] ) )
 			$comment = (object) array_merge( (array)$comment, $as_submitted );
 
-		$comment->blog         = get_bloginfo('url');
+		$comment->blog         = get_option( 'home' );
 		$comment->blog_lang    = get_locale();
 		$comment->blog_charset = get_option('blog_charset');
 		$comment->permalink    = get_permalink($comment->comment_post_ID);
@@ -637,7 +637,7 @@ class Akismet {
 		if ( $as_submitted && is_array($as_submitted) && isset($as_submitted['comment_content']) )
 			$comment = (object) array_merge( (array)$comment, $as_submitted );
 
-		$comment->blog         = get_bloginfo('url');
+		$comment->blog         = get_option( 'home' );
 		$comment->blog_lang    = get_locale();
 		$comment->blog_charset = get_option('blog_charset');
 		$comment->permalink    = get_permalink( $comment->comment_post_ID );

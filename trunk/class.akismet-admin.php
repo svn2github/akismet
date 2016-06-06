@@ -715,7 +715,7 @@ class Akismet_Admin {
 	public static function get_akismet_user( $api_key ) {
 		$akismet_user = false;
 
-		$subscription_verification = Akismet::http_post( Akismet::build_query( array( 'key' => $api_key, 'blog' => get_bloginfo( 'url' ) ) ), 'get-subscription' );
+		$subscription_verification = Akismet::http_post( Akismet::build_query( array( 'key' => $api_key, 'blog' => get_option( 'home' ) ) ), 'get-subscription' );
 
 		if ( ! empty( $subscription_verification[1] ) ) {
 			if ( 'invalid' !== $subscription_verification[1] ) {
@@ -730,7 +730,7 @@ class Akismet_Admin {
 		$stat_totals = array();
 
 		foreach( array( '6-months', 'all' ) as $interval ) {
-			$response = Akismet::http_post( Akismet::build_query( array( 'blog' => get_bloginfo( 'url' ), 'key' => $api_key, 'from' => $interval ) ), 'get-stats' );
+			$response = Akismet::http_post( Akismet::build_query( array( 'blog' => get_option( 'home' ), 'key' => $api_key, 'from' => $interval ) ), 'get-stats' );
 
 			if ( ! empty( $response[1] ) ) {
 				$stat_totals[$interval] = json_decode( $response[1] );
