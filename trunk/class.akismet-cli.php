@@ -2,6 +2,9 @@
 
 WP_CLI::add_command( 'akismet', 'Akismet_CLI' );
 
+/**
+ * Filter spam comments.
+ */
 class Akismet_CLI extends WP_CLI_Command {
 	/**
 	 * Checks one or more comments against the Akismet API.
@@ -11,7 +14,7 @@ class Akismet_CLI extends WP_CLI_Command {
 	 * : The ID(s) of the comment(s) to check.
 	 *
 	 * [--noaction]
-	 * : Don't change the status of the comment. Just check what Akismet thinks it is.
+	 * : Don't change the status of the comment. Just report what Akismet thinks it is.
 	 *
 	 * ## EXAMPLES
 	 *
