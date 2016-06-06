@@ -30,10 +30,10 @@ class Akismet_CLI extends WP_CLI_Command {
 			}
 			
 			if ( 'true' === $is_spam ) {
-				WP_CLI::success( sprintf( __( "Comment #%d is spam.", 'akismet' ), $comment_id ) );
+				WP_CLI::line( sprintf( __( "Comment #%d is spam.", 'akismet' ), $comment_id ) );
 			}
 			else if ( 'false' === $is_spam ) {
-				WP_CLI::success( sprintf( __( "Comment #%d is not spam.", 'akismet' ), $comment_id ) );
+				WP_CLI::line( sprintf( __( "Comment #%d is not spam.", 'akismet' ), $comment_id ) );
 			}
 			else {
 				WP_CLI::warning( sprintf( __( "Comment #%d could not be checked.", 'akismet' ), $comment_id ) );
