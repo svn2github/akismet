@@ -30,6 +30,12 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 3.2 =
+
+* Added a WP-CLI module. You can now check comments and recheck the moderation queue from the command line.
+* Stopped using the deprecated jQuery function `.live()`.
+* Fixed a bug in `remove_comment_author_url()` and `add_comment_author_url()` that could generate PHP notices.
+
 = 3.1.11 =
 *Release Date - 12 May 2016*
 
