@@ -449,8 +449,10 @@ class Akismet {
 		global $wpdb;
 
 		$c = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->comments} WHERE comment_ID = %d", $id ), ARRAY_A );
-		if ( !$c )
-			return;
+		
+		if ( ! $c ) {
+			return new WP_Error( 'invalid-comment-id', __( 'Comment not found.', 'akismet' ) );
+		}
 
 		$c['user_ip']        = $c['comment_author_IP'];
 		$c['user_agent']     = $c['comment_agent'];
@@ -461,67 +463,57 @@ class Akismet {
 		$c['permalink']      = get_permalink($c['comment_post_ID']);
 		$c['recheck_reason'] = $recheck_reason;
 
+		$c['user_role'] = '';
+		if ( isset( $c['user_ID'] ) )
+			$c['user_role'] = Akismet::get_user_roles($c['user_ID']);
+
 		if ( self::is_test_mode() )
 			$c['is_test'] = 'true';
 
 		$response = self::http_post( Akismet::build_query( $c ), 'comment-check' );
 
-		return ( is_array( $response ) && ! empty( $response[1] ) ) ? $response[1] : false;
+		if ( ! empty( $response[1] ) ) {
+			return $response[1];
+		}
+
+		return false;
 	}
 	
 	public static function recheck_comment( $id, $recheck_reason = 'recheck_queue' ) {
-		$is_spam = self::check_db_comment( $id );
-
-		$c = get_comment( $id, ARRAY_A );
+		add_comment_meta( $id, 'akismet_rechecking', true );
 		
-		if ( ! $c ) {
-			return false;
+		$api_response = self::check_db_comment( $id, $recheck_reason );
+
+		delete_comment_meta( $id, 'akismet_rechecking' );
+
+		if ( is_wp_error( $api_response ) ) {
+			// Invalid comment ID.
 		}
-
-		$c['user_ip']      = $c['comment_author_IP'];
-		$c['user_agent']   = $c['comment_agent'];
-		$c['referrer']     = '';
-		$c['blog']         = get_option( 'home' );
-		$c['blog_lang']    = get_locale();
-		$c['blog_charset'] = get_option('blog_charset');
-		$c['permalink']    = get_permalink($c['comment_post_ID']);
-
-		$c['user_role'] = '';
-		if ( isset( $c['user_ID'] ) )
-			$c['user_role'] = Akismet::get_user_roles($c['user_ID']);
-
-		if ( Akismet::is_test_mode() )
-			$c['is_test'] = 'true';
-
-		add_comment_meta( $c['comment_ID'], 'akismet_rechecking', true );
-
-		$response = Akismet::http_post( Akismet::build_query( $c ), 'comment-check' );
-
-		if ( 'true' == $response[1] ) {
-			wp_set_comment_status( $c['comment_ID'], 'spam' );
-			update_comment_meta( $c['comment_ID'], 'akismet_result', 'true' );
-			delete_comment_meta( $c['comment_ID'], 'akismet_error' );
-			delete_comment_meta( $c['comment_ID'], 'akismet_delayed_moderation_email' );
-			Akismet::update_comment_history( $c['comment_ID'], '', 'recheck-spam' );
-		} elseif ( 'false' == $response[1] ) {
-			update_comment_meta( $c['comment_ID'], 'akismet_result', 'false' );
-			delete_comment_meta( $c['comment_ID'], 'akismet_error' );
-			delete_comment_meta( $c['comment_ID'], 'akismet_delayed_moderation_email' );
-			Akismet::update_comment_history( $c['comment_ID'], '', 'recheck-ham' );
-		} else {
+		else if ( 'true' === $api_response ) {
+			wp_set_comment_status( $id, 'spam' );
+			update_comment_meta( $id, 'akismet_result', 'true' );
+			delete_comment_meta( $id, 'akismet_error' );
+			delete_comment_meta( $id, 'akismet_delayed_moderation_email' );
+			Akismet::update_comment_history( $id, '', 'recheck-spam' );
+		}
+		elseif ( 'false' === $api_response ) {
+			update_comment_meta( $id, 'akismet_result', 'false' );
+			delete_comment_meta( $id, 'akismet_error' );
+			delete_comment_meta( $id, 'akismet_delayed_moderation_email' );
+			Akismet::update_comment_history( $id, '', 'recheck-ham' );
+		}
+		else {
 			// abnormal result: error
-			update_comment_meta( $c['comment_ID'], 'akismet_result', 'error' );
+			update_comment_meta( $id, 'akismet_result', 'error' );
 			Akismet::update_comment_history(
-				$c['comment_ID'],
+				$id,
 				'',
 				'recheck-error',
-				array( 'response' => substr( $response[1], 0, 50 ) )
+				array( 'response' => substr( $api_response, 0, 50 ) )
 			);
 		}
 
-		delete_comment_meta( $c['comment_ID'], 'akismet_rechecking' );
-
-		return $response[1];
+		return $api_response;
 	}
 
 	public static function transition_comment_status( $new_status, $old_status, $comment ) {

@@ -398,12 +398,12 @@ class Akismet_Admin {
 		);
 
 		foreach ( $moderation as $comment_id ) {
-			$is_spam = Akismet::recheck_comment( $comment_id, 'recheck_queue' );
+			$api_response = Akismet::recheck_comment( $comment_id, 'recheck_queue' );
 
-			if ( 'true' == $is_spam ) {
+			if ( 'true' === $api_response ) {
 				++$result_counts['spam'];
 			}
-			elseif ( 'false' == $is_spam ) {
+			elseif ( 'false' === $api_response ) {
 				++$result_counts['ham'];
 			}
 			else {
