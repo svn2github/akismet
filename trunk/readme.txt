@@ -2,7 +2,7 @@
 Contributors: matt, ryan, andy, mdawaffe, tellyworth, josephscott, lessbloat, eoigal, cfinke, automattic, jgs
 Tags: akismet, comments, spam, antispam, anti-spam, anti spam, comment moderation, comment spam, contact form spam, spam comments
 Requires at least: 3.7
-Tested up to: 4.5.2
+Tested up to: 4.6
 Stable tag: 3.1.11
 License: GPLv2 or later
 
@@ -35,6 +35,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 * Added a WP-CLI module. You can now check comments and recheck the moderation queue from the command line.
 * Stopped using the deprecated jQuery function `.live()`.
 * Fixed a bug in `remove_comment_author_url()` and `add_comment_author_url()` that could generate PHP notices.
+* Fixed a bug that could cause an infinite loop for sites with very very very large comment IDs.
 
 = 3.1.11 =
 *Release Date - 12 May 2016*

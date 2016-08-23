@@ -347,10 +347,11 @@ class Akismet {
 				do_action( 'delete_comment', $comment_id );
 			}
 
-			$comma_comment_ids = implode( ', ', array_map('intval', $comment_ids) );
+			// Prepared as strings since comment_id is an unsigned BIGINT, and using %d will constrain the value to the maximum signed BIGINT.
+			$format_string = implode( ", ", array_fill( 0, count( $comment_ids ), '%s' ) );
 
-			$wpdb->query("DELETE FROM {$wpdb->comments} WHERE comment_id IN ( $comma_comment_ids )");
-			$wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE comment_id IN ( $comma_comment_ids )");
+			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->comments} WHERE comment_id IN ( " . $format_string . " )", $comment_ids ) );
+			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->commentmeta} WHERE comment_id IN ( " . $format_string . " )", $comment_ids ) );
 
 			clean_comment_cache( $comment_ids );
 		}
