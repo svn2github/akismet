@@ -26,7 +26,7 @@
 					</li>
 					<li>
 						<h3><?php esc_html_e( 'Accuracy' , 'akismet');?></h3>
-						<span><?php echo $stat_totals['all']->accuracy; ?>%</span>
+						<span><?php echo floatval( $stat_totals['all']->accuracy ); ?>%</span>
 						<?php printf( _n( '%s missed spam', '%s missed spam', $stat_totals['all']->missed_spam, 'akismet' ), number_format( $stat_totals['all']->missed_spam ) ); ?>
 						|
 						<?php printf( _n( '%s false positive', '%s false positives', $stat_totals['all']->false_positives, 'akismet' ), number_format( $stat_totals['all']->false_positives ) ); ?>
@@ -63,7 +63,7 @@
 												<th class="akismet-api-key" width="10%" align="left" scope="row"><?php esc_html_e('API Key', 'akismet');?></th>
 												<td width="5%"/>
 												<td align="left">
-													<span class="api-key"><input id="key" name="key" type="text" size="15" value="<?php echo esc_attr( get_option('wordpress_api_key') ); ?>" class="regular-text code <?php echo $akismet_user->status;?>"></span>
+													<span class="api-key"><input id="key" name="key" type="text" size="15" value="<?php echo esc_attr( get_option('wordpress_api_key') ); ?>" class="<?php echo esc_attr( 'regular-text code ' . $akismet_user->status ); ?>"></span>
 												</td>
 											</tr>
 											<?php endif; ?>
@@ -166,7 +166,7 @@
 											<th scope="row" align="left"><?php esc_html_e( 'Subscription Type' , 'akismet');?></th>
 											<td width="5%"/>
 											<td align="left">
-												<span><?php echo $akismet_user->account_name; ?></span>
+												<span><?php echo esc_html( $akismet_user->account_name ); ?></span>
 											</td>
 										</tr>
 										<tr>
