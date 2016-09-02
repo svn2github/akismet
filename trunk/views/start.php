@@ -20,7 +20,7 @@
 <div class="activate-highlight activate-option">
 	<div class="option-description" style="width:75%;">
 		<strong class="small-heading"><?php esc_html_e('Connected via Jetpack', 'akismet'); ?></strong>
-		<?php printf( esc_html__( 'Your subscription for %s is cancelled' , 'akismet'), $akismet_user->user_email ); ?>
+		<?php echo esc_html( sprintf( __( 'Your subscription for %s is cancelled' , 'akismet'), $akismet_user->user_email ) ); ?>
 	</div>
 	<form name="akismet_activate" id="akismet_activate" action="https://akismet.com/get/" method="post" class="right" target="_blank">
 		<input type="hidden" name="passback_url" value="<?php echo esc_url( Akismet_Admin::get_page_url() ); ?>"/>
@@ -34,7 +34,7 @@
 <p><?php esc_html_e('Akismet eliminates spam from your site.', 'akismet'); ?></p>
 <div class="activate-highlight centered activate-option">
 	<strong class="small-heading"><?php esc_html_e( 'Connected via Jetpack' , 'akismet'); ?></strong>
-	<h3 class="alert-text"><?php printf( esc_html__( 'Your subscription for %s is suspended' , 'akismet'), $akismet_user->user_email ); ?></h3>
+	<h3 class="alert-text"><?php echo esc_html( sprintf( __( 'Your subscription for %s is suspended' , 'akismet'), $akismet_user->user_email ) ); ?></h3>
 	<p><?php esc_html_e('No worries! Get in touch and we&#8217;ll sort this out.', 'akismet'); ?></p>
 	<a href="https://akismet.com/contact" class="button button-primary"><?php esc_html_e( 'Contact Akismet support' , 'akismet'); ?></a>
 </div>
