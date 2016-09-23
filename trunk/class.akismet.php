@@ -1038,7 +1038,7 @@ class Akismet {
 	}
 
 	// given a response from an API call like check_key_status(), update the alert code options if an alert is present.
-	private static function update_alert( $response ) {
+	public static function update_alert( $response ) {
 		$code = $msg = null;
 		if ( isset( $response[0]['x-akismet-alert-code'] ) ) {
 			$code = $response[0]['x-akismet-alert-code'];
