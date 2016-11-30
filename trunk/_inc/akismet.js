@@ -162,13 +162,21 @@ jQuery( function ( $ ) {
 	} );
 
 	$('.checkforspam:not(.button-disabled)').click( function(e) {
+		e.preventDefault();
+
 		$('.checkforspam:not(.button-disabled)').addClass('button-disabled');
 		$('.checkforspam-spinner').addClass( 'spinner' ).addClass( 'is-active' );
+
+		// Update the label on the "Check for Spam" button to use the active "Checking for Spam" language.
+		$( '.checkforspam .akismet-label' ).text( $( '.checkforspam' ).data( 'active-label' ) );
+
 		akismet_check_for_spam(0, 100);
-		e.preventDefault();
 	});
 
 	function akismet_check_for_spam(offset, limit) {
+		// Update the progress counter on the "Check for Spam" button.
+		$( '.checkforspam-progress' ).text( $( '.checkforspam' ).data( 'progress-label-format' ).replace( '%1$s', offset ) );
+
 		$.post(
 			ajaxurl,
 			{

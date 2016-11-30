@@ -349,7 +349,7 @@ class Akismet_Admin {
 		else
 			$link = add_query_arg( array( 'page' => 'akismet-admin', 'recheckqueue' => 'true', 'noheader' => 'true' ), admin_url( 'edit-comments.php' ) );
 
-		echo '</div><div class="alignleft"><a class="button-secondary checkforspam" href="' . esc_url( $link ) . '">' . esc_html__('Check for Spam', 'akismet') . '</a><span class="checkforspam-spinner"></span>';
+		echo '</div><div class="alignleft"><a class="button-secondary checkforspam" href="' . esc_url( $link ) . '" data-active-label="' . esc_attr( __( 'Checking for Spam', 'akismet' ) ) . '" data-progress-label-format="' . esc_attr( __( '(%1$s...)', 'akismet' ) ) . '"><span class="akismet-label">' . esc_html__('Check for Spam', 'akismet') . '</span> <span class="checkforspam-progress"></span></a><span class="checkforspam-spinner"></span>';
 	}
 
 	public static function recheck_queue() {
