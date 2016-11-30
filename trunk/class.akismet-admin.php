@@ -349,7 +349,20 @@ class Akismet_Admin {
 		else
 			$link = add_query_arg( array( 'page' => 'akismet-admin', 'recheckqueue' => 'true', 'noheader' => 'true' ), admin_url( 'edit-comments.php' ) );
 
-		echo '</div><div class="alignleft"><a class="button-secondary checkforspam" href="' . esc_url( $link ) . '" data-active-label="' . esc_attr( __( 'Checking for Spam', 'akismet' ) ) . '" data-progress-label-format="' . esc_attr( __( '(%1$s...)', 'akismet' ) ) . '"><span class="akismet-label">' . esc_html__('Check for Spam', 'akismet') . '</span> <span class="checkforspam-progress"></span></a><span class="checkforspam-spinner"></span>';
+		echo '</div>';
+		echo '<div class="alignleft">';
+		echo '<a
+				class="button-secondary checkforspam"
+				href="' . esc_url( $link ) . '"
+				data-active-label="' . esc_attr( __( 'Checking for Spam', 'akismet' ) ) . '"
+				data-progress-label-format="' . esc_attr( __( '(%1$s...)', 'akismet' ) ) . '"
+				data-success-url="' . esc_attr( add_query_arg( array( 'akismet_recheck_complete' => 1, 'recheck_count' => '%(recheck_count)', 'spam_count' => '%(spam_count)' ) ) ) . '"
+				>';
+			echo '<span class="akismet-label">' . esc_html__('Check for Spam', 'akismet') . '</span>';
+			echo '<span class="checkforspam-progress"></span>';
+		echo '</a>';
+		echo '<span class="checkforspam-spinner"></span>';
+
 	}
 
 	public static function recheck_queue() {
@@ -925,6 +938,27 @@ class Akismet_Admin {
 		}
 		elseif ( in_array( $hook_suffix, array( 'jetpack_page_akismet-key-config', 'settings_page_akismet-key-config' ) ) && Akismet::get_api_key() ) {
 			self::display_status();
+		}
+		else if ( isset( $_GET['akismet_recheck_complete'] ) ) {
+			$recheck_count = (int) $_GET['recheck_count'];
+			$spam_count = (int) $_GET['spam_count'];
+			
+			if ( $recheck_count === 0 ) {
+				$message = __( 'There were no comments to check. Akismet will only check comments in the Pending queue.', 'akismet' );
+			}
+			else {
+				$message = sprintf( _n( 'Akismet checked %s comment.', 'Akismet checked %s comments.', $recheck_count, 'akismet' ), number_format( $recheck_count ) );
+				$message .= ' ';
+			
+				if ( $spam_count === 0 ) {
+					$message .= __( 'No comments were caught as spam.' );
+				}
+				else {
+					$message .= sprintf( _n( '%s comment was caught as spam', '%s comments were caught as spam.', $spam_count, 'akismet' ), number_format( $spam_count ) );
+				}
+			}
+			
+			echo '<div class="notice notice-success"><p>' . esc_html( $message ) . '</p></div>';
 		}
 	}
 

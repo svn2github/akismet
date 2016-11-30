@@ -173,6 +173,9 @@ jQuery( function ( $ ) {
 		akismet_check_for_spam(0, 100);
 	});
 
+	var spam_count = 0;
+	var recheck_count = 0;
+
 	function akismet_check_for_spam(offset, limit) {
 		// Update the progress counter on the "Check for Spam" button.
 		$( '.checkforspam-progress' ).text( $( '.checkforspam' ).data( 'progress-label-format' ).replace( '%1$s', offset ) );
@@ -185,8 +188,11 @@ jQuery( function ( $ ) {
 				'limit': limit
 			},
 			function(result) {
+				recheck_count += result.counts.processed;
+				spam_count += result.counts.spam;
+				
 				if (result.counts.processed < limit) {
-					window.location.reload();
+					window.location.href = $( '.checkforspam' ).data( 'success-url' ).replace( '%(recheck_count)', recheck_count ).replace( '%(spam_count)', spam_count );
 				}
 				else {
 					// Account for comments that were caught as spam and moved out of the queue.

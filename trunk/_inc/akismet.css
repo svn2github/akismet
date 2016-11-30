@@ -84,6 +84,14 @@ h2.ak-header {
 .checkforspam {
     display: inline-block !important;
 }
+.checkforspam-progress {
+	padding-left: 1ex;
+	display: none;
+}
+.checkforspam.button-disabled .checkforspam-progress {
+	display: inline;
+}
+
 .checkforspam-spinner {
     display: inline-block;
     margin-top: 7px;
