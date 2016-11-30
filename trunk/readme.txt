@@ -33,6 +33,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 = 3.3 =
 
 * Fixed bugs preventing the `akismet_add_comment_nonce` and `akismet_update_alert` wrapper functions from working properly.
+* Fixed bug preventing the loading indicator from appearing when re-checking all comments for spam.
 
 = 3.2 =
 *Release Date - 6 September 2016*
