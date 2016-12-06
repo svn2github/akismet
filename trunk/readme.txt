@@ -6,11 +6,11 @@ Tested up to: 4.6.1
 Stable tag: 3.2
 License: GPLv2 or later
 
-Akismet checks your comments against the Akismet Web service to see if they look like spam or not.
+Akismet checks your comments and contact form submissions against our global database of spam to protect you and your site from malicious content.
 
 == Description ==
 
-Akismet checks your comments against the Akismet Web service to see if they look like spam or not and lets you review the spam it catches under your blog's "Comments" admin screen.
+Akismet checks your comments and contact form submissions against our global database of spam to prevent your site from publishing malicious content. You can review the comment spam it catches on your blog's "Comments" admin screen.
 
 Major features in Akismet include:
 
