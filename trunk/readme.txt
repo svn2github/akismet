@@ -32,6 +32,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 = 3.3 =
 
+* Updated the Akismet admin pages with a new clean design.
 * Fixed bugs preventing the `akismet_add_comment_nonce` and `akismet_update_alert` wrapper functions from working properly.
 * Fixed bug preventing the loading indicator from appearing when re-checking all comments for spam.
 * Added a progress indicator to the "Check for Spam" button.
