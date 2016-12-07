@@ -5,10 +5,10 @@
 			<div class="aa_a">A</div>
 			<div class="aa_button_container">
 				<div class="aa_button_border">
-					<input type="submit" class="aa_button" value="<?php esc_attr_e( 'Activate your Akismet account', 'akismet' ); ?>" />
+					<input type="submit" class="aa_button" value="<?php esc_attr_e( 'Set up your Akismet account', 'akismet' ); ?>" />
 				</div>
 			</div>
-			<div class="aa_description"><?php _e('<strong>Almost done</strong> - activate Akismet and say goodbye to spam', 'akismet');?></div>
+			<div class="aa_description"><?php _e('<strong>Almost done</strong> - configure Akismet and say goodbye to spam', 'akismet');?></div>
 		</div>
 	</form>
 </div>
