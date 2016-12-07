@@ -114,7 +114,7 @@ class Akismet_Admin {
 			wp_register_style( 'akismet.css', plugin_dir_url( __FILE__ ) . '_inc/akismet.css', array(), AKISMET_VERSION );
 			wp_enqueue_style( 'akismet.css');
 
-			wp_register_script( 'akismet.js', plugin_dir_url( __FILE__ ) . '_inc/akismet.js', array('jquery','postbox'), AKISMET_VERSION );
+			wp_register_script( 'akismet.js', plugin_dir_url( __FILE__ ) . '_inc/akismet.js', array('jquery'), AKISMET_VERSION );
 			wp_enqueue_script( 'akismet.js' );
 			wp_localize_script( 'akismet.js', 'WPAkismet', array(
 				'comment_author_url_nonce' => wp_create_nonce( 'comment_author_url_nonce' ),
@@ -806,10 +806,6 @@ class Akismet_Admin {
 		}
 	}
 
-	public static function display_invalid_version() {
-		Akismet::view( 'notice', array( 'type' => 'version' ) );
-	}
-
 	public static function display_api_key_warning() {
 		Akismet::view( 'notice', array( 'type' => 'plugin' ) );
 	}
@@ -851,18 +847,26 @@ class Akismet_Admin {
 			if ( $_GET['action'] == 'save-key' ) {
 				if ( is_object( $akismet_user ) ) {
 					self::save_key( $akismet_user->api_key );
-					self::display_notice();
 					self::display_configuration_page();
-					return;				
+					return;
 				}
 			}
 		}
 
-		echo '<h2 class="ak-header">'.esc_html__('Akismet', 'akismet').'</h2>';
-
-		self::display_status();
-
 		Akismet::view( 'start', compact( 'akismet_user' ) );
+
+		/*
+		// To see all variants when testing.
+		$akismet_user->status = 'no-sub';
+		Akismet::view( 'start', compact( 'akismet_user' ) );
+		$akismet_user->status = 'cancelled';
+		Akismet::view( 'start', compact( 'akismet_user' ) );
+		$akismet_user->status = 'suspended';
+		Akismet::view( 'start', compact( 'akismet_user' ) );
+		$akismet_user->status = 'other';
+		Akismet::view( 'start', compact( 'akismet_user' ) );
+		$akismet_user = false;
+		*/
 	}
 
 	public static function display_stats_page() {
@@ -886,8 +890,9 @@ class Akismet_Admin {
        	if ( get_option( 'akismet_strictness' ) === false )
         	add_option( 'akismet_strictness', (get_option('akismet_discard_month') === 'true' ? '1' : '0') );
 
+		$notices = array();
+
 		if ( empty( self::$notices ) ) {
-			//show status
 			if ( ! empty( $stat_totals['all'] ) && isset( $stat_totals['all']->time_saved ) && $akismet_user->status == 'active' && $akismet_user->account_type == 'free-api-key' ) {
 
 				$time_saved = false;
@@ -905,26 +910,53 @@ class Akismet_Admin {
 					elseif ( $total_in_minutes >= 30 )
 						$time_saved = $cleaning_up . ' ' . sprintf( _n( 'Akismet has saved you %d minute!', 'Akismet has saved you %d minutes!', $total_in_minutes, 'akismet' ), $total_in_minutes );
 				}
-
-				Akismet::view( 'notice', array( 'type' => 'active-notice', 'time_saved' => $time_saved ) );
+				
+				$notices[] =  array( 'type' => 'active-notice', 'time_saved' => $time_saved );
 			}
 			
 			if ( !empty( $akismet_user->limit_reached ) && in_array( $akismet_user->limit_reached, array( 'yellow', 'red' ) ) ) {
-				Akismet::view( 'notice', array( 'type' => 'limit-reached', 'level' => $akismet_user->limit_reached ) );
+				$notices[] = array( 'type' => 'limit-reached', 'level' => $akismet_user->limit_reached );
 			}
 		}
 		
-		if ( !isset( self::$notices['status'] ) && in_array( $akismet_user->status, array( 'cancelled', 'suspended', 'missing', 'no-sub' ) ) )	
-			Akismet::view( 'notice', array( 'type' => $akismet_user->status ) );
+		if ( !isset( self::$notices['status'] ) && in_array( $akismet_user->status, array( 'cancelled', 'suspended', 'missing', 'no-sub' ) ) ) {
+			$notices[] = array( 'type' => $akismet_user->status );
+		}
 
+		/*
+		// To see all variants when testing.
+		$notices[] = array( 'type' => 'active-notice', 'time_saved' => 'Cleaning up spam takes time. Akismet has saved you 1 minute!' );
+		$notices[] = array( 'type' => 'plugin' );
+		$notices[] = array( 'type' => 'spam-check', 'link_text' => 'Link text.' );
+		$notices[] = array( 'type' => 'notice', 'notice_header' => 'This is the notice header.', 'notice_text' => 'This is the notice text.' );
+		$notices[] = array( 'type' => 'missing-functions' );
+		$notices[] = array( 'type' => 'servers-be-down' );
+		$notices[] = array( 'type' => 'active-dunning' );
+		$notices[] = array( 'type' => 'cancelled' );
+		$notices[] = array( 'type' => 'suspended' );
+		$notices[] = array( 'type' => 'missing' );
+		$notices[] = array( 'type' => 'no-sub' );
+		$notices[] = array( 'type' => 'new-key-valid' );
+		$notices[] = array( 'type' => 'new-key-invalid' );
+		$notices[] = array( 'type' => 'existing-key-invalid' );
+		$notices[] = array( 'type' => 'new-key-failed' );
+		$notices[] = array( 'type' => 'limit-reached', 'level' => 'yellow' );
+		$notices[] = array( 'type' => 'limit-reached', 'level' => 'red' );
+		*/
+		
 		Akismet::log( compact( 'stat_totals', 'akismet_user' ) );
-		Akismet::view( 'config', compact( 'api_key', 'akismet_user', 'stat_totals' ) );
+		Akismet::view( 'config', compact( 'api_key', 'akismet_user', 'stat_totals', 'notices' ) );
 	}
 
 	public static function display_notice() {
 		global $hook_suffix;
 
-		if ( in_array( $hook_suffix, array( 'jetpack_page_akismet-key-config', 'settings_page_akismet-key-config', 'edit-comments.php' ) ) && (int) get_option( 'akismet_alert_code' ) > 0 ) {
+		if ( in_array( $hook_suffix, array( 'jetpack_page_akismet-key-config', 'settings_page_akismet-key-config' ) ) ) {
+			// This page manages the notices and puts them inline where they make sense.
+			return;
+		}
+
+		if ( in_array( $hook_suffix, array( 'edit-comments.php' ) ) && (int) get_option( 'akismet_alert_code' ) > 0 ) {
 			Akismet::verify_key( Akismet::get_api_key() ); //verify that the key is still in alert state
 			
 			if ( get_option( 'akismet_alert_code' ) > 0 )
@@ -935,9 +967,6 @@ class Akismet_Admin {
 		}
 		elseif ( $hook_suffix == 'edit-comments.php' && wp_next_scheduled( 'akismet_schedule_cron_recheck' ) ) {
 			self::display_spam_check_warning();
-		}
-		elseif ( in_array( $hook_suffix, array( 'jetpack_page_akismet-key-config', 'settings_page_akismet-key-config' ) ) && Akismet::get_api_key() ) {
-			self::display_status();
 		}
 		else if ( isset( $_GET['akismet_recheck_complete'] ) ) {
 			$recheck_count = (int) $_GET['recheck_count'];
@@ -963,32 +992,35 @@ class Akismet_Admin {
 	}
 
 	public static function display_status() {
-		$type = '';
-
-		if ( !self::get_server_connectivity() )
-			$type = 'servers-be-down';
-
-		if ( !empty( $type ) )
-			Akismet::view( 'notice', compact( 'type' ) );
-		elseif ( !empty( self::$notices ) ) {
-			foreach ( self::$notices as $type ) {
+		if ( ! self::get_server_connectivity() ) {
+			Akismet::view( 'notice', compact( 'servers-be-down' ) );
+		}
+		else if ( ! empty( self::$notices ) ) {
+			foreach ( self::$notices as $index => $type ) {
 				if ( is_object( $type ) ) {
 					$notice_header = $notice_text = '';
 					
-					if ( property_exists( $type, 'notice_header' ) )
+					if ( property_exists( $type, 'notice_header' ) ) {
 						$notice_header = wp_kses( $type->notice_header, self::$allowed );
+					}
 				
-					if ( property_exists( $type, 'notice_text' ) )
+					if ( property_exists( $type, 'notice_text' ) ) {
 						$notice_text = wp_kses( $type->notice_text, self::$allowed );
+					}
 					
 					if ( property_exists( $type, 'status' ) ) {
 						$type = wp_kses( $type->status, self::$allowed );
 						Akismet::view( 'notice', compact( 'type', 'notice_header', 'notice_text' ) );
+						
+						unset( self::$notices[ $index ] );
 					}
 				}
-				else
+				else {
 					Akismet::view( 'notice', compact( 'type' ) );
-			}				
+					
+					unset( self::$notices[ $index ] );
+				}
+			}
 		}
 	}
 

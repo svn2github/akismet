@@ -3,17 +3,6 @@ jQuery( function ( $ ) {
 	var mshotSecondTryTimer = null
 	var mshotThirdTryTimer = null
 	
-	$( 'a.activate-option' ).click( function(){
-		var link = $( this );
-		if ( link.hasClass( 'clicked' ) ) {
-			link.removeClass( 'clicked' );
-		}
-		else {
-			link.addClass( 'clicked' );
-		}
-		$( '.toggle-have-key' ).slideToggle( 'slow', function() {});
-		return false;
-	});
 	$('.akismet-status').each(function () {
 		var thisId = $(this).attr('commentid');
 		$(this).prependTo('#comment-' + thisId + ' .column-comment');
