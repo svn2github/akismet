@@ -63,6 +63,8 @@ class Akismet_Admin {
 		add_filter( 'plugin_action_links_'.plugin_basename( plugin_dir_path( __FILE__ ) . 'akismet.php'), array( 'Akismet_Admin', 'admin_plugin_settings_link' ) );
 		
 		add_filter( 'wxr_export_skip_commentmeta', array( 'Akismet_Admin', 'exclude_commentmeta_from_export' ), 10, 3 );
+		
+		add_filter( 'all_plugins', array( 'Akismet_Admin', 'modify_plugin_description' ) );
 	}
 
 	public static function admin_init() {
@@ -1062,5 +1064,21 @@ class Akismet_Admin {
 		}
 		
 		return $exclude;
+	}
+	
+	/**
+	 * When Akismet is active, remove the "Activate Akismet" step from the plugin description.
+	 */
+	public static function modify_plugin_description( $all_plugins ) {
+		if ( isset( $all_plugins['akismet/akismet.php'] ) ) {
+			if ( Akismet::get_api_key() ) {
+				$all_plugins['akismet/akismet.php']['Description'] = __( 'Used by millions, Akismet is quite possibly the best way in the world to <strong>protect your blog from spam</strong>. Your site is fully configured and being protected, even while you sleep.', 'akismet' );
+			}
+			else {
+				$all_plugins['akismet/akismet.php']['Description'] = __( 'Used by millions, Akismet is quite possibly the best way in the world to <strong>protect your blog from spam</strong>. It keeps your site protected even while you sleep. To get started, just go to <a href="admin.php?page=akismet-key-config">your Akismet configuration page</a> to set up your API key.', 'akismet' );
+			}
+		}
+		
+		return $all_plugins;
 	}
 }
