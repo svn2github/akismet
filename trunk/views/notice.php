@@ -98,7 +98,7 @@
 <div class="akismet-alert akismet-active">
 	<h3 class="akismet-key-status"><?php esc_html_e( 'Akismet is now protecting your site from spam. Happy blogging!', 'akismet' ); ?></h3>
 	<?php if ( $check_pending_link ) { ?>
-		<p class="akismet-description"><?php printf( __( 'You can <a href="%s">have Akismet check all of your pending comments</a>.', 'akismet' ), esc_url( $check_pending_link ) ); ?></p>
+		<p class="akismet-description"><?php printf( __( 'Would you like to <a href="%s">check pending comments</a>?', 'akismet' ), esc_url( $check_pending_link ) ); ?></p>
 	<?php } ?>
 </div>
 <?php elseif ( $type == 'new-key-invalid' ) :?>
