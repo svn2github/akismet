@@ -509,7 +509,14 @@ class Akismet_Admin {
 		if ( $desc )
 			echo '<span class="akismet-status" commentid="'.$comment->comment_ID.'"><a href="comment.php?action=editcomment&amp;c='.$comment->comment_ID.'#akismet-status" title="' . esc_attr__( 'View comment history' , 'akismet') . '">'.esc_html( $desc ).'</a></span>';
 
-		$show_user_comments = apply_filters( 'akismet_show_user_comments_approved', get_option('akismet_show_user_comments_approved') );
+		$show_user_comments_option = get_option( 'akismet_show_user_comments_approved' );
+		
+		if ( $show_user_comments_option === false ) {
+			// Default to active if the user hasn't made a decision.
+			$show_user_comments_option = '1';
+		}
+		
+		$show_user_comments = apply_filters( 'akismet_show_user_comments_approved', $show_user_comments_option );
 		$show_user_comments = $show_user_comments === 'false' ? false : $show_user_comments; //option used to be saved as 'false' / 'true'
 		
 		if ( $show_user_comments ) {

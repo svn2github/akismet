@@ -97,7 +97,21 @@
 									<td></td>
 									<td align="left">
 										<p>
-											<label for="akismet_show_user_comments_approved" title="<?php esc_attr_e( 'Show approved comments' , 'akismet'); ?>"><input name="akismet_show_user_comments_approved" id="akismet_show_user_comments_approved" value="1" type="checkbox" <?php checked('1', get_option('akismet_show_user_comments_approved')); ?>> <?php esc_html_e('Show the number of approved comments beside each comment author', 'akismet'); ?></label>
+											<label for="akismet_show_user_comments_approved" title="<?php esc_attr_e( 'Show approved comments' , 'akismet'); ?>">
+												<input
+													name="akismet_show_user_comments_approved"
+													id="akismet_show_user_comments_approved"
+													value="1"
+													type="checkbox"
+													<?php
+													
+													// If the option isn't set, or if it's enabled ('1'), or if it was enabled a long time ago ('true'), check the checkbox.
+													checked( true, ( in_array( get_option( 'akismet_show_user_comments_approved' ), array( false, '1', 'true' ), true ) ) );
+													
+													?>
+													/>
+												<?php esc_html_e( 'Show the number of approved comments beside each comment author', 'akismet' ); ?>
+											</label>
 										</p>
 									</td>
 								</tr>
