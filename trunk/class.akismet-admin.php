@@ -895,9 +895,11 @@ class Akismet_Admin {
 
 		$stat_totals  = self::get_stats( $api_key );
 
-		// If unset, create the new strictness option using the old discard option to determine its default
-       	if ( get_option( 'akismet_strictness' ) === false )
-        	add_option( 'akismet_strictness', (get_option('akismet_discard_month') === 'true' ? '1' : '0') );
+		// If unset, create the new strictness option using the old discard option to determine its default.
+		// If the old option wasn't set, default to discarding the blatant spam.
+		if ( get_option( 'akismet_strictness' ) === false ) {
+			add_option( 'akismet_strictness', ( get_option( 'akismet_discard_month' ) === 'false' ? '0' : '1' ) );
+		}
 
 		$notices = array();
 
