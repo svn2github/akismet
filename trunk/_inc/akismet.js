@@ -181,7 +181,7 @@ jQuery( function ( $ ) {
 				spam_count += result.counts.spam;
 				
 				if (result.counts.processed < limit) {
-					window.location.href = $( '.checkforspam' ).data( 'success-url' ).replace( '%(recheck_count)', recheck_count ).replace( '%(spam_count)', spam_count );
+					window.location.href = $( '.checkforspam' ).data( 'success-url' ).replace( '__recheck_count__', recheck_count ).replace( '__spam_count__', spam_count );
 				}
 				else {
 					// Account for comments that were caught as spam and moved out of the queue.
@@ -189,6 +189,10 @@ jQuery( function ( $ ) {
 				}
 			}
 		);
+	}
+	
+	if ( "start_recheck" in WPAkismet && WPAkismet.start_recheck ) {
+		$( '.checkforspam' ).click();
 	}
 });
 // URL encode plugin

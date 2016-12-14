@@ -118,7 +118,8 @@ class Akismet_Admin {
 
 			wp_register_script( 'akismet.js', plugin_dir_url( __FILE__ ) . '_inc/akismet.js', array('jquery'), AKISMET_VERSION );
 			wp_enqueue_script( 'akismet.js' );
-			wp_localize_script( 'akismet.js', 'WPAkismet', array(
+			
+			$inline_js = array(
 				'comment_author_url_nonce' => wp_create_nonce( 'comment_author_url_nonce' ),
 				'strings' => array(
 					'Remove this URL' => __( 'Remove this URL' , 'akismet'),
@@ -127,7 +128,13 @@ class Akismet_Admin {
 					'(undo)'          => __( '(undo)' , 'akismet'),
 					'Re-adding...'    => __( 'Re-adding...' , 'akismet'),
 				)
-			) );
+			);
+
+			if ( isset( $_GET['akismet_recheck'] ) && wp_verify_nonce( $_GET['akismet_recheck'], 'akismet_recheck' ) ) {
+				$inline_js['start_recheck'] = true;
+			}
+
+			wp_localize_script( 'akismet.js', 'WPAkismet', $inline_js );
 		}
 	}
 
@@ -358,7 +365,7 @@ class Akismet_Admin {
 				href="' . esc_url( $link ) . '"
 				data-active-label="' . esc_attr( __( 'Checking for Spam', 'akismet' ) ) . '"
 				data-progress-label-format="' . esc_attr( __( '(%1$s...)', 'akismet' ) ) . '"
-				data-success-url="' . esc_attr( add_query_arg( array( 'akismet_recheck_complete' => 1, 'recheck_count' => '%(recheck_count)', 'spam_count' => '%(spam_count)' ) ) ) . '"
+				data-success-url="' . esc_attr( remove_query_arg( 'akismet_recheck', add_query_arg( array( 'akismet_recheck_complete' => 1, 'recheck_count' => urlencode( '__recheck_count__' ), 'spam_count' => urlencode( '__spam_count__' ) ) ) ) ) . '"
 				>';
 			echo '<span class="akismet-label">' . esc_html__('Check for Spam', 'akismet') . '</span>';
 			echo '<span class="checkforspam-progress"></span>';
