@@ -104,7 +104,7 @@ class Akismet_Admin {
 	public static function load_resources() {
 		global $hook_suffix;
 
-		if ( in_array( $hook_suffix, array(
+		if ( in_array( $hook_suffix, apply_filters( 'akismet_admin_page_hook_suffixes', array(
 			'index.php', # dashboard
 			'edit-comments.php',
 			'comment.php',
@@ -112,7 +112,7 @@ class Akismet_Admin {
 			'settings_page_akismet-key-config',
 			'jetpack_page_akismet-key-config',
 			'plugins.php',
-		) ) ) {
+		) ) ) ) {
 			wp_register_style( 'akismet.css', plugin_dir_url( __FILE__ ) . '_inc/akismet.css', array(), AKISMET_VERSION );
 			wp_enqueue_style( 'akismet.css');
 
