@@ -1001,7 +1001,7 @@ class Akismet_Admin {
 					$message .= __( 'No comments were caught as spam.' );
 				}
 				else {
-					$message .= sprintf( _n( '%s comment was caught as spam', '%s comments were caught as spam.', $spam_count, 'akismet' ), number_format( $spam_count ) );
+					$message .= sprintf( _n( '%s comment was caught as spam.', '%s comments were caught as spam.', $spam_count, 'akismet' ), number_format( $spam_count ) );
 				}
 			}
 			
