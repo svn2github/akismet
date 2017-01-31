@@ -470,3 +470,97 @@ table.comments td.comment p a:after {
 	line-height: 2.125rem;
 	font-size: 0.9rem;
 }
+
+.akismet-box {
+	box-sizing: border-box;
+	background: white;
+	border: 1px solid rgba(200, 215, 225, 0.5);
+}
+
+.akismet-box h2, .akismet-box h3 {
+	padding: 1.5rem 1.5rem .5rem 1.5rem;
+	margin: 0;
+}
+
+.akismet-box p {
+	padding: 0 1.5rem 1.5rem 1.5rem;
+	margin: 0;
+}
+
+.akismet-jetpack-email {
+	font-style: oblique;
+}
+
+.akismet-jetpack-gravatar {
+	padding: 0 0 0 1.5rem;
+	float: left;
+	margin-right: 1rem;
+	width: 54px;
+	height: 54px;
+}
+	
+.akismet-box p:after {
+	content: ".";
+	display: block;
+	height: 0;
+	clear: both;
+	visibility: hidden;
+}
+
+.akismet-box .akismet-right {
+	padding-right: 1.5rem;
+}
+
+.akismet-boxes .akismet-box {
+	margin-bottom: 0;
+	padding: 0;
+	margin-top: -1px;
+}
+
+.akismet-boxes .akismet-box:last-child {
+	margin-bottom: 1.5rem;
+}
+
+.akismet-boxes .akismet-box:first-child {
+	margin-top: 1.5rem;
+}
+
+.akismet-button, .akismet-button:hover, .akismet-button:visited {
+	background: white;
+	border-color: #c8d7e1;
+	border-style: solid;
+	border-width: 1px 1px 2px;
+	color: #2e4453;
+	cursor: pointer;
+	display: inline-block;
+	margin: 0;
+	outline: 0;
+	overflow: hidden;
+	font-size: 14px;
+	font-weight: 500;
+	text-overflow: ellipsis;
+	text-decoration: none;
+	vertical-align: top;
+	box-sizing: border-box;
+	font-size: 14px;
+	line-height: 21px;
+	border-radius: 4px;
+	padding: 7px 14px 9px;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+}
+
+.akismet-button:hover {
+	border-color: #a8bece;
+}
+
+.akismet-is-primary, .akismet-is-primary:hover, .akismet-is-primary:visited {
+	background: #00aadc;
+	border-color: #0087be;
+	color: white;
+}
+
+.akismet-is-primary:hover {
+	border-color: #005082;
+}
