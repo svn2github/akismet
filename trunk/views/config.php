@@ -17,10 +17,17 @@
 		<?php } ?>
 		<?php if ( $stat_totals && isset( $stat_totals['all'] ) && (int) $stat_totals['all']->spam > 0 ) : ?>
 			<div class="akismet-card">
-				<h3><?php esc_html_e( 'Statistics', 'akismet' ); ?></h3>
-				<span class="akismet-card-header-corner">
-					<a href="<?php echo esc_url( Akismet_Admin::get_page_url( 'stats' ) ); ?>"><?php esc_html_e( 'Detailed Stats' , 'akismet');?></a>
-				</span>
+				<div class="akismet-section-header">
+					<div class="akismet-section-header__label">
+						<span><?php esc_html_e( 'Statistics' , 'akismet'); ?></span>
+					</div>
+					<div class="akismet-section-header__actions">
+						<a href="<?php echo esc_url( Akismet_Admin::get_page_url( 'stats' ) ); ?>">
+							<?php esc_html_e( 'Detailed Stats' , 'akismet');?>
+						</a>
+					</div>
+				</div>
+				
 				<div class="akismet-new-snapshot">
 					<iframe allowtransparency="true" scrolling="no" frameborder="0" style="width: 100%; height: 220px; overflow: hidden;" src="<?php printf( '//akismet.com/web/1.0/snapshot.php?blog=%s&api_key=%s&height=200&locale=%s', urlencode( get_option( 'home' ) ), Akismet::get_api_key(), get_locale() );?>"></iframe>
 					<ul>
@@ -48,7 +55,12 @@
 
 		<?php if ( $akismet_user ):?>
 			<div class="akismet-card">
-				<h2><?php esc_html_e( 'Settings' , 'akismet');?></h2>
+				<div class="akismet-section-header">
+					<div class="akismet-section-header__label">
+						<span><?php esc_html_e( 'Settings' , 'akismet'); ?></span>
+					</div>
+				</div>
+
 				<div class="inside">
 					<form action="<?php echo esc_url( Akismet_Admin::get_page_url() ); ?>" method="POST">
 						<table cellspacing="0" class="akismet-settings">
@@ -162,7 +174,12 @@
 			</div>
 
 			<div class="akismet-card">
-				<h2><?php esc_html_e( 'Account' , 'akismet'); ?></h2>
+				<div class="akismet-section-header">
+					<div class="akismet-section-header__label">
+						<span><?php esc_html_e( 'Account' , 'akismet'); ?></span>
+					</div>
+				</div>
+				
 				<div class="inside">
 					<table cellspacing="0" border="0" class="akismet-settings">
 						<tbody>

@@ -435,29 +435,11 @@ table.comments td.comment p a:after {
 	visibility: hidden;
 }
 
-.akismet-card > h1, .akismet-card > h2, .akismet-card > h3 {
-	width: 100%;
-	padding: 16px;
-	border-bottom: 1px solid #f3f6f8;
-	font-size: 1.125rem;
-	line-height: 1.4;
-	font-weight: normal;
-	margin-bottom: 0;
-}
-
-.akismet-card-header-corner {
-	position: absolute;
-	top: 1.7rem;
-	right: 1.7rem;
-}
-
-.akismet-card .inside, .akismet-card > h1, .akismet-card > h2, .akismet-card > h3 {
-	padding: 1.5rem;
-}
-
 .akismet-card .inside {
+	padding: 1.5rem;
 	padding-top: 1rem;
 }
+
 .akismet-card .akismet-card-actions {
 	margin-top: 1rem;
 }
@@ -555,12 +537,50 @@ table.comments td.comment p a:after {
 	border-color: #a8bece;
 }
 
+.akismet-button:active {
+	border-width: 2px 1px 1px;
+}
+
 .akismet-is-primary, .akismet-is-primary:hover, .akismet-is-primary:visited {
 	background: #00aadc;
 	border-color: #0087be;
 	color: white;
 }
 
+.akismet-is-primary:hover, .akismet-is-primary:focus {
+    border-color: #005082;
+}
+
 .akismet-is-primary:hover {
 	border-color: #005082;
+}
+
+.akismet-section-header {
+	position: relative;
+	margin: 0 auto 0.625rem auto;
+	padding: 1rem;
+	box-sizing: border-box;
+	box-shadow: 0 0 0 1px rgba(200, 215, 225, 0.5), 0 1px 2px #e9eff3;
+	background: #fafbfc;
+	width: 100%;
+	padding-top: 0.6875rem;
+	padding-bottom: 0.6875rem;
+	display: flex;
+}
+
+.akismet-section-header__label {
+	display: -ms-flexbox;
+	display: flex;
+	-ms-flex-align: center;
+	align-items: center;
+	-ms-flex-positive: 1;
+	flex-grow: 1;
+	line-height: 1.75rem;
+	position: relative;
+	font-size: 0.875rem;
+	color: #4f748e;
+}
+
+.akismet-section-header__actions {
+	line-height: 1.75rem;
 }
