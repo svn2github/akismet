@@ -361,6 +361,7 @@ class Akismet {
 			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->commentmeta} WHERE comment_id IN ( " . $format_string . " )", $comment_ids ) );
 
 			clean_comment_cache( $comment_ids );
+			do_action( 'akismet_delete_comment_batch', count( $comment_ids ) );
 		}
 
 		if ( apply_filters( 'akismet_optimize_table', ( mt_rand(1, 5000) == 11), $wpdb->comments ) ) // lucky number
@@ -388,6 +389,8 @@ class Akismet {
 			foreach ( $comment_ids as $comment_id ) {
 				delete_comment_meta( $comment_id, 'akismet_as_submitted' );
 			}
+
+			do_action( 'akismet_delete_commentmeta_batch', count( $comment_ids ) );
 		}
 
 		if ( apply_filters( 'akismet_optimize_table', ( mt_rand(1, 5000) == 11), $wpdb->commentmeta ) ) // lucky number
