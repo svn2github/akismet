@@ -29,18 +29,7 @@ class Akismet {
 		add_action( 'akismet_scheduled_delete', array( 'Akismet', 'delete_old_comments_meta' ) );
 		add_action( 'akismet_schedule_cron_recheck', array( 'Akismet', 'cron_recheck' ) );
 
-		/**
-		 * To disable the Akismet comment nonce, add a filter for the 'akismet_comment_nonce' tag
-		 * and return any string value that is not 'true' or '' (empty string).
-		 *
-		 * Don't return boolean false, because that implies that the 'akismet_comment_nonce' option
-		 * has not been set and that Akismet should just choose the default behavior for that
-		 * situation.
-		 */
-		$akismet_comment_nonce_option = apply_filters( 'akismet_comment_nonce', get_option( 'akismet_comment_nonce' ) );
-
-		if ( $akismet_comment_nonce_option == 'true' || $akismet_comment_nonce_option == '' )
-			add_action( 'comment_form',  array( 'Akismet',  'add_comment_nonce' ), 1 );
+		add_action( 'comment_form',  array( 'Akismet',  'add_comment_nonce' ), 1 );
 
 		add_action( 'admin_head-edit-comments.php', array( 'Akismet', 'load_form_js' ) );
 		add_action( 'comment_form', array( 'Akismet', 'load_form_js' ) );
@@ -783,9 +772,21 @@ class Akismet {
 	}
 
 	public static function add_comment_nonce( $post_id ) {
-		echo '<p style="display: none;">';
-		wp_nonce_field( 'akismet_comment_nonce_' . $post_id, 'akismet_comment_nonce', FALSE );
-		echo '</p>';
+		/**
+		 * To disable the Akismet comment nonce, add a filter for the 'akismet_comment_nonce' tag
+		 * and return any string value that is not 'true' or '' (empty string).
+		 *
+		 * Don't return boolean false, because that implies that the 'akismet_comment_nonce' option
+		 * has not been set and that Akismet should just choose the default behavior for that
+		 * situation.
+		 */
+		$akismet_comment_nonce_option = apply_filters( 'akismet_comment_nonce', get_option( 'akismet_comment_nonce' ) );
+
+		if ( $akismet_comment_nonce_option == 'true' || $akismet_comment_nonce_option == '' ) {
+			echo '<p style="display: none;">';
+			wp_nonce_field( 'akismet_comment_nonce_' . $post_id, 'akismet_comment_nonce', FALSE );
+			echo '</p>';
+		}
 	}
 
 	public static function is_test_mode() {
