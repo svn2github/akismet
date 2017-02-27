@@ -171,7 +171,11 @@ class Akismet {
 		}
 
 		$post = get_post( $comment['comment_post_ID'] );
-		$comment[ 'comment_post_modified_gmt' ] = $post->post_modified_gmt;
+
+		if ( ! is_null( $post ) ) {
+			// $post can technically be null, although in the past, it's always been an indicator of another plugin interfering.
+			$comment[ 'comment_post_modified_gmt' ] = $post->post_modified_gmt;
+		}
 
 		$response = self::http_post( Akismet::build_query( $comment ), 'comment-check' );
 
@@ -200,7 +204,9 @@ class Akismet {
 				// akismet_result_spam() won't be called so bump the counter here
 				if ( $incr = apply_filters('akismet_spam_count_incr', 1) )
 					update_option( 'akismet_spam_count', get_option('akismet_spam_count') + $incr );
-				$redirect_to = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : get_permalink( $post );
+				// The spam is obvious, so we're bailing out early. Redirect back to the previous page,
+				// or failing that, the post permalink, or failing that, the homepage of the blog.
+				$redirect_to = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : ( $post ? get_permalink( $post ) : home_url() );
 				wp_safe_redirect( esc_url_raw( $redirect_to ) );
 				die();
 			}
@@ -606,7 +612,10 @@ class Akismet {
 			$comment->is_test = 'true';
 
 		$post = get_post( $comment->comment_post_ID );
-		$comment->comment_post_modified_gmt = $post->post_modified_gmt;
+
+		if ( ! is_null( $post ) ) {
+			$comment->comment_post_modified_gmt = $post->post_modified_gmt;
+		}
 
 		$response = Akismet::http_post( Akismet::build_query( $comment ), 'submit-spam' );
 		if ( $comment->reporter ) {
@@ -653,7 +662,10 @@ class Akismet {
 			$comment->is_test = 'true';
 
 		$post = get_post( $comment->comment_post_ID );
-		$comment->comment_post_modified_gmt = $post->post_modified_gmt;
+
+		if ( ! is_null( $post ) ) {
+			$comment->comment_post_modified_gmt = $post->post_modified_gmt;
+		}
 
 		$response = self::http_post( Akismet::build_query( $comment ), 'submit-ham' );
 		if ( $comment->reporter ) {
