@@ -261,9 +261,6 @@ class Akismet {
 		if ( !function_exists('add_comment_meta') )
 			return false;
 
-		if ( !isset( self::$last_comment['comment_author_email'] ) )
-			self::$last_comment['comment_author_email'] = '';
-
 		// wp_insert_comment() might be called in other contexts, so make sure this is the same comment
 		// as was checked by auto_check_comment
 		if ( is_object( $comment ) && !empty( self::$last_comment ) && is_array( self::$last_comment ) ) {
@@ -816,7 +813,25 @@ class Akismet {
 	private static function comments_match( $comment1, $comment2 ) {
 		$comment1 = (array) $comment1;
 		$comment2 = (array) $comment2;
-		
+
+		// Set default values for these strings that we check in order to simplify
+		// the checks and avoid PHP warnings.
+		if ( ! isset( $comment1['comment_author'] ) ) {
+			$comment1['comment_author'] = '';
+		}
+
+		if ( ! isset( $comment2['comment_author'] ) ) {
+			$comment2['comment_author'] = '';
+		}
+
+		if ( ! isset( $comment1['comment_author_email'] ) ) {
+			$comment1['comment_author_email'] = '';
+		}
+
+		if ( ! isset( $comment2['comment_author_email'] ) ) {
+			$comment2['comment_author_email'] = '';
+		}
+
 		$comments_match = (
 			   isset( $comment1['comment_post_ID'], $comment2['comment_post_ID'] )
 			&& intval( $comment1['comment_post_ID'] ) == intval( $comment2['comment_post_ID'] )
