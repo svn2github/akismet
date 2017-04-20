@@ -850,9 +850,6 @@ class Akismet {
 	
 	// Does the supplied comment match the details of the one most recently stored in self::$last_comment?
 	public static function matches_last_comment( $comment ) {
-		if ( is_object( $comment ) )
-			$comment = (array) $comment;
-
 		return self::comments_match( self::$last_comment, $comment );
 	}
 
