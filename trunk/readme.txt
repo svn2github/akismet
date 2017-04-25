@@ -35,6 +35,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 * Fixed a bug that could cause PHP warnings if `get_post()` returned a null value.
 * Improve performance by only requesting the akismet_comment_nonce option when absolutely necessary.
 * Fixed a bug that could cause PHP warnings.
+* Fixed a bug that was preventing the "Remove author URL" feature from working after a comment was edited using "Quick Edit."
 
 = 3.3 =
 *Release Date - 23 February 2017*
