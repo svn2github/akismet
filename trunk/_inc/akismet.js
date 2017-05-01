@@ -82,7 +82,7 @@ jQuery( function ( $ ) {
 	});
 
 	// Show a preview image of the hovered URL. Applies to author URLs and URLs inside the comments.
-	$( 'a[id^="author_comment_url"], tr.pingback td.column-author a:first-of-type, table.comments td.comment p a' ).mouseover( function () {
+	$( '#the-comment-list' ).on( 'mouseover', 'a[id^="author_comment_url"], tr.pingback td.column-author a:first-of-type, td.comment p a', function () {
 		clearTimeout( mshotRemovalTimer );
 
 		if ( $( '.akismet-mshot' ).length > 0 ) {
@@ -120,7 +120,7 @@ jQuery( function ( $ ) {
 		}, 12000 );
 
 		$( 'body' ).append( mShot );
-	} ).mouseout( function () {
+	} ).on( 'mouseout', 'a[id^="author_comment_url"], tr.pingback td.column-author a:first-of-type, td.comment p a', function () {
 		mshotRemovalTimer = setTimeout( function () {
 			clearTimeout( mshotSecondTryTimer );
 			clearTimeout( mshotThirdTryTimer );
