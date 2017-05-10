@@ -30,6 +30,10 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 3.3.2 =
+
+* Fixed a bug causing JavaScript errors in some browsers.
+ 
 = 3.3.1 =
 *Release Date - 2 May 2017*
 
