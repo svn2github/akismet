@@ -30,6 +30,10 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 3.3.3 =
+
+* Reduced amount of bandwidth used by the URL Preview feature.
+
 = 3.3.2 =
 *Release Date - 10 May 2017*
 

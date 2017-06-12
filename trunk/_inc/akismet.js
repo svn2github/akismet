@@ -119,6 +119,12 @@ jQuery( function ( $ ) {
 			mShot.find( '.mshot-image' ).attr( 'src', '//s0.wordpress.com/mshots/v1/'+thisHref+'?w=450&r=3' );
 		}, 12000 );
 
+		mShot.find( '.mshot-image' ).on( 'load', function () {
+			// Disable the retries once the preview has loaded.
+			clearTimeout( mshotSecondTryTimer );
+			clearTimeout( mshotThirdTryTimer );
+		} );
+
 		$( 'body' ).append( mShot );
 	} ).on( 'mouseout', 'a[id^="author_comment_url"], tr.pingback td.column-author a:first-of-type, td.comment p a', function () {
 		mshotRemovalTimer = setTimeout( function () {
