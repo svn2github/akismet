@@ -101,7 +101,7 @@ jQuery( function ( $ ) {
 
 		var thisHref = encodeURIComponent( $( this ).attr( 'href' ) );
 
-		var mShot = $( '<div class="akismet-mshot mshot-container"><div class="mshot-arrow"></div><img src="//s0.wordpress.com/mshots/v1/' + thisHref + '?w=450" width="450" height="338" class="mshot-image" /></div>' );
+		var mShot = $( '<div class="akismet-mshot mshot-container"><div class="mshot-arrow"></div><img src="//s0.wordpress.com/mshots/v1/' + thisHref + '?w=900" width="450" height="338" class="mshot-image" /></div>' );
 		mShot.data( 'link', this );
 
 		var offset = $( this ).offset();
@@ -112,11 +112,11 @@ jQuery( function ( $ ) {
 		} );
 
 		mshotSecondTryTimer = setTimeout( function () {
-			mShot.find( '.mshot-image' ).attr( 'src', '//s0.wordpress.com/mshots/v1/'+thisHref+'?w=450&r=2' );
+			mShot.find( '.mshot-image' ).attr( 'src', '//s0.wordpress.com/mshots/v1/'+thisHref+'?w=900&r=2' );
 		}, 6000 );
 
 		mshotThirdTryTimer = setTimeout( function () {
-			mShot.find( '.mshot-image' ).attr( 'src', '//s0.wordpress.com/mshots/v1/'+thisHref+'?w=450&r=3' );
+			mShot.find( '.mshot-image' ).attr( 'src', '//s0.wordpress.com/mshots/v1/'+thisHref+'?w=900&r=3' );
 		}, 12000 );
 
 		mShot.find( '.mshot-image' ).on( 'load', function () {
