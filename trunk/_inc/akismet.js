@@ -111,6 +111,9 @@ jQuery( function ( $ ) {
 			top: offset.top + ( $( this ).height() / 2 ) - 101 // 101 = top offset of the arrow plus the top border thickness
 		} );
 
+		// These retries appear to be superfluous if .mshot-image has already loaded, but it's because mShots
+		// can return a "Generating thumbnail..." image if it doesn't have a thumbnail ready, so we need
+		// to retry to see if we can get the newly generated thumbnail.
 		mshotSecondTryTimer = setTimeout( function () {
 			mShot.find( '.mshot-image' ).attr( 'src', '//s0.wordpress.com/mshots/v1/'+thisHref+'?w=900&r=2' );
 		}, 6000 );
@@ -118,12 +121,6 @@ jQuery( function ( $ ) {
 		mshotThirdTryTimer = setTimeout( function () {
 			mShot.find( '.mshot-image' ).attr( 'src', '//s0.wordpress.com/mshots/v1/'+thisHref+'?w=900&r=3' );
 		}, 12000 );
-
-		mShot.find( '.mshot-image' ).on( 'load', function () {
-			// Disable the retries once the preview has loaded.
-			clearTimeout( mshotSecondTryTimer );
-			clearTimeout( mshotThirdTryTimer );
-		} );
 
 		$( 'body' ).append( mShot );
 	} ).on( 'mouseout', 'a[id^="author_comment_url"], tr.pingback td.column-author a:first-of-type, td.comment p a', function () {
