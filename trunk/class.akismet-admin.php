@@ -910,6 +910,11 @@ class Akismet_Admin {
 		if ( get_option( 'akismet_strictness' ) === false ) {
 			add_option( 'akismet_strictness', ( get_option( 'akismet_discard_month' ) === 'false' ? '0' : '1' ) );
 		}
+		
+		// Sync the local "Total spam blocked" count with the authoritative count from the server.
+		if ( isset( $stat_totals['all'], $stat_totals['all']->spam ) ) {
+			update_option( 'akismet_spam_count', $stat_totals['all']->spam );
+		}
 
 		$notices = array();
 
