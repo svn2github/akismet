@@ -34,6 +34,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 * Reduced amount of bandwidth used by the URL Preview feature.
 * Improved the admin UI when the API key is manually pre-defined for the site.
+* Removed a workaround for WordPress installations older than 3.3 that will improve Akismet's compatibility with other plugins.
 
 = 3.3.2 =
 *Release Date - 10 May 2017*
