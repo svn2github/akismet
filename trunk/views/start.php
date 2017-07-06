@@ -14,7 +14,7 @@
 			<p><?php esc_html_e( 'Select one of the options below to get started.', 'akismet' ); ?></p>
 		</div>
 		<div class="akismet-boxes">
-			<?php if ( ! defined( 'WPCOM_API_KEY' ) ) { ?>
+			<?php if ( ! Akismet::predefined_api_key() ) { ?>
 				<?php if ( $akismet_user && in_array( $akismet_user->status, array( 'active', 'active-dunning', 'no-sub', 'missing', 'cancelled', 'suspended' ) ) ) { ?>
 					<?php if ( in_array( $akismet_user->status, array( 'no-sub', 'missing' ) ) ) { ?>
 						<div class="akismet-box">
