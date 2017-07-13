@@ -36,6 +36,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 * Improved the admin UI when the API key is manually pre-defined for the site.
 * Removed a workaround for WordPress installations older than 3.3 that will improve Akismet's compatibility with other plugins.
 * The number of spam blocked that is displayed on the WordPress dashboard will now be more accurate and updated more frequently.
+* Fixed a bug in the Akismet widget that could cause PHP warnings.
 
 = 3.3.2 =
 *Release Date - 10 May 2017*
