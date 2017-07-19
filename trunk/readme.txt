@@ -34,6 +34,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 * Disabled Akismet's debug log output by default unless AKISMET_DEBUG is defined.
 * URL previews now begin preloading when the mouse moves near them in the comments section of wp-admin.
+* When a comment is caught by the Comment Blacklist, Akismet will always allow it to stay in the trash even if it is spam as well.
 
 = 3.3.3 =
 *Release Date - 13 July 2017*

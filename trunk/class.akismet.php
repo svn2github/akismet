@@ -914,6 +914,15 @@ class Akismet {
 			return $approved;
 		}
 
+		if ( 'trash' === $approved ) {
+			// If the last comment we checked has had its approval set to 'trash',
+			// then it failed the comment blacklist check. Let that blacklist override
+			// the spam check, since users have the (valid) expectation that when
+			// they fill out their blacklists, comments that match it will always
+			// end up in the trash.
+			return $approved;
+		}
+
 		// bump the counter here instead of when the filter is added to reduce the possibility of overcounting
 		if ( $incr = apply_filters('akismet_spam_count_incr', 1) )
 			update_option( 'akismet_spam_count', get_option('akismet_spam_count') + $incr );
