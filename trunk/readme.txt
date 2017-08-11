@@ -1,7 +1,7 @@
 === Akismet ===
 Contributors: matt, ryan, andy, mdawaffe, tellyworth, josephscott, lessbloat, eoigal, cfinke, automattic, jgs
 Tags: akismet, comments, spam, antispam, anti-spam, anti spam, comment moderation, comment spam, contact form spam, spam comments
-Requires at least: 3.7
+Requires at least: 4.0
 Tested up to: 4.8.1
 Stable tag: 3.3.4
 License: GPLv2 or later
@@ -29,6 +29,10 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 1, 2, 3: You're done!
 
 == Changelog ==
+
+= 4.0 =
+
+* Increased the minimum supported WordPress version to 4.0.
 
 = 3.3.4 =
 
