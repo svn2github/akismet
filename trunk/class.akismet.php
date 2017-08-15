@@ -10,7 +10,8 @@ class Akismet {
 	private static $prevent_moderation_email_for_these_comments = array();
 	private static $last_comment_result = null;
 	private static $comment_as_submitted_allowed_keys = array( 'blog' => '', 'blog_charset' => '', 'blog_lang' => '', 'blog_ua' => '', 'comment_agent' => '', 'comment_author' => '', 'comment_author_IP' => '', 'comment_author_email' => '', 'comment_author_url' => '', 'comment_content' => '', 'comment_date_gmt' => '', 'comment_tags' => '', 'comment_type' => '', 'guid' => '', 'is_test' => '', 'permalink' => '', 'reporter' => '', 'site_domain' => '', 'submit_referer' => '', 'submit_uri' => '', 'user_ID' => '', 'user_agent' => '', 'user_id' => '', 'user_ip' => '' );
-
+	private static $is_rest_api_call = false;
+	
 	public static function init() {
 		if ( ! self::$initiated ) {
 			self::init_hooks();
@@ -25,6 +26,8 @@ class Akismet {
 
 		add_action( 'wp_insert_comment', array( 'Akismet', 'auto_check_update_meta' ), 10, 2 );
 		add_filter( 'preprocess_comment', array( 'Akismet', 'auto_check_comment' ), 1 );
+		add_filter( 'rest_pre_insert_comment', array( 'Akismet', 'rest_auto_check_comment' ), 1 );
+
 		add_action( 'akismet_scheduled_delete', array( 'Akismet', 'delete_old_comments' ) );
 		add_action( 'akismet_scheduled_delete', array( 'Akismet', 'delete_old_comments_meta' ) );
 		add_action( 'akismet_schedule_cron_recheck', array( 'Akismet', 'cron_recheck' ) );
@@ -103,6 +106,12 @@ class Akismet {
 		if ( $old_value !== $value ) {
 			self::verify_key( $value );
 		}
+	}
+	
+	public static function rest_auto_check_comment( $commentdata ) {
+		self::$is_rest_api_call = true;
+		
+		return self::auto_check_comment( $commentdata );
 	}
 
 	public static function auto_check_comment( $commentdata ) {
@@ -190,14 +199,25 @@ class Akismet {
 			do_action( 'akismet_spam_caught', $discard );
 
 			if ( $discard ) {
+				// The spam is obvious, so we're bailing out early. 
 				// akismet_result_spam() won't be called so bump the counter here
-				if ( $incr = apply_filters('akismet_spam_count_incr', 1) )
-					update_option( 'akismet_spam_count', get_option('akismet_spam_count') + $incr );
-				// The spam is obvious, so we're bailing out early. Redirect back to the previous page,
-				// or failing that, the post permalink, or failing that, the homepage of the blog.
-				$redirect_to = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : ( $post ? get_permalink( $post ) : home_url() );
-				wp_safe_redirect( esc_url_raw( $redirect_to ) );
-				die();
+				if ( $incr = apply_filters( 'akismet_spam_count_incr', 1 ) ) {
+					update_option( 'akismet_spam_count', get_option( 'akismet_spam_count' ) + $incr );
+				}
+
+				if ( self::$is_rest_api_call ) {
+					return new WP_Error( 'akismet_rest_comment_discarded', __( 'Comment discarded.', 'akismet' ) );
+				}
+				else {
+					// Redirect back to the previous page, or failing that, the post permalink, or failing that, the homepage of the blog.
+					$redirect_to = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : ( $post ? get_permalink( $post ) : home_url() );
+					wp_safe_redirect( esc_url_raw( $redirect_to ) );
+					die();
+				}
+			}
+			else if ( self::$is_rest_api_call ) {
+				// The way the REST API structures its calls, we can set the comment_approved value right away.
+				$commentdata['comment_approved'] = 'spam';
 			}
 		}
 		

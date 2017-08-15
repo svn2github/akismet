@@ -33,6 +33,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 = 4.0 =
 
 * Increased the minimum supported WordPress version to 4.0.
+* Added compatibility with comments submitted via the REST API.
 
 = 3.3.4 =
 
