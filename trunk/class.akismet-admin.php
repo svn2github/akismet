@@ -362,14 +362,17 @@ class Akismet_Admin {
 
 		$link = add_query_arg( array( 'action' => 'akismet_recheck_queue' ), admin_url( 'admin.php' ) );
 
+		$comments_count = wp_count_comments();
+		
 		echo '</div>';
 		echo '<div class="alignleft">';
 		echo '<a
 				class="button-secondary checkforspam"
 				href="' . esc_url( $link ) . '"
 				data-active-label="' . esc_attr( __( 'Checking for Spam', 'akismet' ) ) . '"
-				data-progress-label-format="' . esc_attr( __( '(%1$s...)', 'akismet' ) ) . '"
+				data-progress-label-format="' . esc_attr( __( '(%1$s%)', 'akismet' ) ) . '"
 				data-success-url="' . esc_attr( remove_query_arg( 'akismet_recheck', add_query_arg( array( 'akismet_recheck_complete' => 1, 'recheck_count' => urlencode( '__recheck_count__' ), 'spam_count' => urlencode( '__spam_count__' ) ) ) ) ) . '"
+				data-pending-comment-count="' . esc_attr( $comments_count->moderated ) . '"
 				>';
 			echo '<span class="akismet-label">' . esc_html__('Check for Spam', 'akismet') . '</span>';
 			echo '<span class="checkforspam-progress"></span>';

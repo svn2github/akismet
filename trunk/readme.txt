@@ -34,6 +34,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 * Increased the minimum supported WordPress version to 4.0.
 * Added compatibility with comments submitted via the REST API.
+* Improved the progress indicator on the "Check for Spam" button.
 
 = 3.3.4 =
 
