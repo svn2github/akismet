@@ -4,7 +4,7 @@
 Plugin Name: Akismet Unit Tests
 Plugin URI: http://akismet.com/
 Description: Additional code to help while testing the Akismet plugin.  DO NOT RUN THIS ON A PRODUCTION SITE!
-Version: 2.4.0
+Version: 4.0a1
 Author: Automattic
 Author URI: http://automattic.com/wordpress-plugins/
 License: GPLv2
@@ -40,18 +40,22 @@ function akismet_unit_tests() {
 		return;
 	}
 	
+	if ( version_compare( AKISMET_VERSION, '3.0' ) < 0 ) {
+		?>
+		<p>These tests are intended to be run with Akismet 3.0+.</p>
+		<?php
+		
+		return;
+
+	}
+	
 	define('AKISMET_TEST_MODE', true);
 	
 	require_once('simpletest/unit_tester.php');
 
 	$suite = new TestSuite('All Akismet tests');
 
-	// add new files here as needed
-	if ( version_compare( AKISMET_VERSION, '3.0-alpha' ) < 0 ) {
-		$suite->addFile(dirname(__FILE__) . '/basic-tests.php');
-	} else {
-		$suite->addFile(dirname(__FILE__) . '/new-tests.php');
-	}
+	$suite->addFile(dirname(__FILE__) . '/new-tests.php');
 
 ?>
 <div class="wrap">

@@ -1,7 +1,10 @@
 <?php
 
 // Use the latest post. Post #1 may not exist. Don't run this on a real site.
-define( 'AKISMET_TEST_POST_ID', array_shift( get_posts( 'posts_per_page=1') )->ID );
+$akismet_first_post = get_posts( 'posts_per_page=1');
+$akismet_first_post = array_shift( $akismet_first_post );
+
+define( 'AKISMET_TEST_POST_ID', $akismet_first_post->ID );
 
 class TestAkismetVersion extends UnitTestCase {
 	function test_version_constant() {
@@ -12,7 +15,7 @@ class TestAkismetVersion extends UnitTestCase {
 	
 	function test_minimum_wp_version() {
 		// Note: get_plugin_data() does not return "Requires at least" value.
-		$this->assertEqual( AKISMET__MINIMUM_WP_VERSION, '3.7' );
+		$this->assertEqual( AKISMET__MINIMUM_WP_VERSION, '4.0' );
 	}
 }
 
@@ -141,7 +144,7 @@ class TestAkismetRetry extends UnitTestCase {
 		wp_schedule_single_event( time() - 30, 'akismet_schedule_cron_recheck' );
 
 		$cron_url = get_option( 'siteurl' ) . '/wp-cron.php?doing_wp_cron';
-		$r = wp_remote_post( $cron_url, array('timeout' => 10, 'blocking' => true, 'sslverify' => apply_filters('https_local_ssl_verify', true)) );
+		$r = wp_remote_post( $cron_url, array( 'timeout' => 10, 'blocking' => true, 'sslverify' => apply_filters('https_local_ssl_verify', true)) );
 		
 		wp_cache_init();
 		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
@@ -299,98 +302,96 @@ class TestAkismetRetrySpam extends TestAkismetRetry {
 
 }
 
-
 // this is a slow test, so don't run it unless we need to
-if ( defined('AKISMET_TEST_RETRY_QUEUE') && AKISMET_TEST_RETRY_QUEUE ) {
-class TestAkismetRetryQueue extends UnitTestCase {
-	var $comment_ids = array();
-	var $comment_author = 'alex';
-	var $old_moderation_option;
-	var $old_whitelist_option;
+if ( ( defined( 'AKISMET_TEST_RETRY_QUEUE' ) && AKISMET_TEST_RETRY_QUEUE ) || isset( $_GET['akismet_test_retry_queue'] ) ) {
+	class TestAkismetRetryQueue extends UnitTestCase {
+		var $comment_ids = array();
+		var $comment_author = 'alex';
+		var $old_moderation_option;
+		var $old_whitelist_option;
 	
-	function setUp() {
-		// make sure the preexisting moderation options don't affect test results
-		$this->old_moderation_option = get_option('comment_moderation');
-		$this->old_whitelist_option = get_option('comment_whitelist');
-		update_option('comment_moderation', '0');
-		update_option('comment_whitelist', '0');
-		$this->old_post = $_POST;
+		function setUp() {
+			// make sure the preexisting moderation options don't affect test results
+			$this->old_moderation_option = get_option('comment_moderation');
+			$this->old_whitelist_option = get_option('comment_whitelist');
+			update_option('comment_moderation', '0');
+			update_option('comment_whitelist', '0');
+			$this->old_post = $_POST;
 		
-		// add 101 comments to the queue
-		for ( $i=0; $i < 101; $i++ ) {
-			$id = wp_insert_comment( array(
-				'comment_post_ID' => AKISMET_TEST_POST_ID,
-				'comment_author' => $this->comment_author,
-				'comment_author_email' => 'alex@example.com',
-				'comment_content' => 'This is a test: '. __CLASS__,
-				'comment_approved' => 0, // simulate the behaviour of akismet_auto_check_comment() by holding the comment in the pending queue
-			));
-			$this->comment_ids[] = $id;
-			$comment = get_comment( $id );
+			// add 101 comments to the queue
+			for ( $i=0; $i < 101; $i++ ) {
+				$id = wp_insert_comment( array(
+					'comment_post_ID' => AKISMET_TEST_POST_ID,
+					'comment_author' => $this->comment_author,
+					'comment_author_email' => 'alex@example.com',
+					'comment_content' => 'This is a test: '. __CLASS__,
+					'comment_approved' => 0, // simulate the behaviour of akismet_auto_check_comment() by holding the comment in the pending queue
+				));
+				$this->comment_ids[] = $id;
+				$comment = get_comment( $id );
 
-			// hack: make the plugin think that we just checked this comment but haven't yet updated meta.
-			$akismet_last_comment = (array) $comment;
-			// pretend that checking failed
-			$akismet_last_comment[ 'akismet_result' ] = 'error';
+				// hack: make the plugin think that we just checked this comment but haven't yet updated meta.
+				$akismet_last_comment = (array) $comment;
+				// pretend that checking failed
+				$akismet_last_comment[ 'akismet_result' ] = 'error';
 
-			Akismet::set_last_comment( $akismet_last_comment );
+				Akismet::set_last_comment( $akismet_last_comment );
 
-			// and update commentmeta accordingly
-			Akismet::auto_check_update_meta( $id, $comment );
+				// and update commentmeta accordingly
+				Akismet::auto_check_update_meta( $id, $comment );
+			}
+		
+			Akismet::set_last_comment( null );
+
+			// make sure there are no jobs scheduled
+			$j = 0;
+			while ( $j++ < 1000 && wp_next_scheduled('akismet_schedule_cron_recheck') )
+				wp_unschedule_event( wp_next_scheduled('akismet_schedule_cron_recheck'), 'akismet_schedule_cron_recheck' );
 		}
-		
-		Akismet::set_last_comment( null );
+	
+		function tearDown() {
+			foreach ( $this->comment_ids as $id )
+				wp_delete_comment( $id, true );
+			Akismet::set_last_comment( null );
+			update_option('comment_moderation', $this->old_moderation_option);
+			update_option('comment_whitelist', $this->old_whitelist_option);
+			$_POST = $this->old_post;
 
-		// make sure there are no jobs scheduled
-		$j = 0;
-		while ( $j++ < 1000 && wp_next_scheduled('akismet_schedule_cron_recheck') )
+			// make sure there are no jobs scheduled
+			$j = 0;
+			while ( $j++ < 1000 && wp_next_scheduled('akismet_schedule_cron_recheck') )
+				wp_unschedule_event( wp_next_scheduled('akismet_schedule_cron_recheck'), 'akismet_schedule_cron_recheck' );
+		}
+	
+		function test_queue_reschedule() {
+			// after running akismet_cron_recheck(), there will still be 1 comment left to recheck.
+			// make sure that the job is rescheduled.
+		
+			// first make sure there's no job to confuse the test
+			$this->assertFalse( wp_next_scheduled('akismet_schedule_cron_recheck') );
+		
+			Akismet::cron_recheck();
+		
+			// now make sure the job is rescheduled
+			$this->assertTrue( wp_next_scheduled('akismet_schedule_cron_recheck') );
+		
+			// remove it to pretend that the job has started
 			wp_unschedule_event( wp_next_scheduled('akismet_schedule_cron_recheck'), 'akismet_schedule_cron_recheck' );
-	}
-	
-	function tearDown() {
-		foreach ( $this->comment_ids as $id )
-			wp_delete_comment( $id, true );
-		Akismet::set_last_comment( null );
-		update_option('comment_moderation', $this->old_moderation_option);
-		update_option('comment_whitelist', $this->old_whitelist_option);
-		$_POST = $this->old_post;
+		
+			// do the remaining comment
+			Akismet::cron_recheck();
+		
+			// and make sure another job was not scheduled
+			$this->assertFalse( wp_next_scheduled('akismet_schedule_cron_recheck') );
 
-		// make sure there are no jobs scheduled
-		$j = 0;
-		while ( $j++ < 1000 && wp_next_scheduled('akismet_schedule_cron_recheck') )
-			wp_unschedule_event( wp_next_scheduled('akismet_schedule_cron_recheck'), 'akismet_schedule_cron_recheck' );
+			// double check that all comments were processed
+			global $wpdb;
+			$waiting = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->commentmeta WHERE meta_key = 'akismet_error'" );
+			$this->assertEqual( 0, $waiting );
+		
+			wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
+		}
 	}
-	
-	function test_queue_reschedule() {
-		// after running akismet_cron_recheck(), there will still be 1 comment left to recheck.
-		// make sure that the job is rescheduled.
-		
-		// first make sure there's no job to confuse the test
-		$this->assertFalse( wp_next_scheduled('akismet_schedule_cron_recheck') );
-		
-		Akismet::cron_recheck();
-		
-		// now make sure the job is rescheduled
-		$this->assertTrue( wp_next_scheduled('akismet_schedule_cron_recheck') );
-		
-		// remove it to pretend that the job has started
-		wp_unschedule_event( wp_next_scheduled('akismet_schedule_cron_recheck'), 'akismet_schedule_cron_recheck' );
-		
-		// do the remaining comment
-		Akismet::cron_recheck();
-		
-		// and make sure another job was not scheduled
-		$this->assertFalse( wp_next_scheduled('akismet_schedule_cron_recheck') );
-
-		// double check that all comments were processed
-		global $wpdb;
-		$waiting = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->commentmeta WHERE meta_key = 'akismet_error'" );
-		$this->assertEqual( 0, $waiting );
-		
-		wp_clear_scheduled_hook( 'akismet_schedule_cron_recheck' );
-	}
-	
-}
 }
 
 // make sure the initial comment check is triggered, and the correct result stored, when wp_new_comment() is called
@@ -1103,5 +1104,177 @@ class TestNoDeleteOldHam extends UnitTestCase {
 		$this->assertTrue( Akismet::get_comment_history( $this->comment_id ) );
 		$this->assertFalse( get_comment_meta( $this->comment_id, 'akismet_as_submitted' ) );
 		
+	}
+}
+
+function akismet_tests_rest_api_request( $endpoint, $method, $auth = false, $params = "" ) {
+	$rest_url = get_rest_url( null, 'akismet/v1/' . $endpoint );
+
+	$curl = curl_init();
+	
+	$params = json_encode( $params );
+	
+	$headers = array(
+		"cache-control: no-cache",
+		"content-type: application/json",
+	);
+	
+	if ( $auth ) {
+		$headers[] = "authorization: Basic " . base64_encode( AKISMET_UNIT_TESTS_USERNAME . ":" . AKISMET_UNIT_TESTS_PASSWORD );
+	}
+	
+	curl_setopt_array( $curl, array(
+		CURLOPT_URL => $rest_url,
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_ENCODING => "",
+		CURLOPT_MAXREDIRS => 10,
+		CURLOPT_TIMEOUT => 120,
+		CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		CURLOPT_CUSTOMREQUEST => $method,
+		CURLOPT_HTTPHEADER => $headers,
+		CURLOPT_POSTFIELDS => $params,
+	) );
+
+	$response = curl_exec( $curl );
+	
+	$err = curl_error( $curl );
+	curl_close( $curl );
+
+	if ( $err ) {
+		return new WP_Error( $err );
+	}
+
+	$json_response = json_decode( $response );
+
+	if ( $json_response === null ) {
+		return new WP_Error( "unexpected_response", $response );
+	}
+
+	return $json_response;
+}
+
+
+class TestRESTAPIUnprivileged extends UnitTestCase {
+	function test_key_get() {
+		$api_response = akismet_tests_rest_api_request( "key", "GET", false );
+
+		$this->assertEqual( $api_response->code, "rest_forbidden" );
+	}
+
+	function test_key_set() {
+		$api_response = akismet_tests_rest_api_request( "key", "POST", false, array( 'key' => 'abcdef012345' ) );
+
+		$this->assertEqual( $api_response->code, "rest_forbidden" );
+	}
+	
+	function test_key_delete() {
+		$api_response = akismet_tests_rest_api_request( "key", "DELETE", false );
+		
+		$this->assertEqual( $api_response->code, "rest_forbidden" );
+	}
+	
+	function test_settings_get() {
+		$api_response = akismet_tests_rest_api_request( "settings", "GET", false );
+		
+		$this->assertEqual( $api_response->code, "rest_forbidden" );
+	}
+
+	function test_settings_set() {
+		$api_response = akismet_tests_rest_api_request( "settings", "POST", false, array( 'akismet_strictness' => true, 'akismet_show_user_comments_approved' => true ) );
+		
+		$this->assertEqual( $api_response->code, "rest_forbidden" );
+	}
+	
+	function test_stats_get() {
+		$api_response = akismet_tests_rest_api_request( "stats", "GET", false );
+		
+		$this->assertEqual( $api_response->code, "rest_forbidden" );
+	}
+}
+
+class TestRESTAPIPrivileged extends UnitTestCase {
+	function setUp() {
+		update_option( 'wordpress_api_key', AKISMET_UNIT_TESTS_API_KEY );
+	}
+
+	function tearDown() {
+		update_option( 'wordpress_api_key', AKISMET_UNIT_TESTS_API_KEY );
+	}
+
+	function test_key() {
+		$api_response = akismet_tests_rest_api_request( "key", "GET", true );
+
+		$this->assertEqual( $api_response, Akismet::get_api_key() );
+
+		$this->assertEqual( Akismet::get_api_key(), AKISMET_UNIT_TESTS_API_KEY );
+
+		// Try setting to an invalid key.
+		$api_response = akismet_tests_rest_api_request( "key", "POST", true, array( 'key' => 'abc' ) );
+
+		$this->assertEqual( $api_response->code, "invalid_key" );
+
+		$this->assertEqual( Akismet::get_api_key(), AKISMET_UNIT_TESTS_API_KEY );
+
+		// Set to a different valid key.
+		$api_response = akismet_tests_rest_api_request( "key", "POST", true, array( 'key' => AKISMET_UNIT_TESTS_ALTERNATE_API_KEY ) );
+		$this->assertEqual( $api_response, AKISMET_UNIT_TESTS_ALTERNATE_API_KEY );
+		
+		$api_response = akismet_tests_rest_api_request( "key", "GET", true );
+		$this->assertEqual( $api_response, AKISMET_UNIT_TESTS_ALTERNATE_API_KEY );
+
+		// Delete the key.
+		$api_response = akismet_tests_rest_api_request( "key", "DELETE", true );
+		$this->assertTrue( $api_response === true );
+		
+		$api_response = akismet_tests_rest_api_request( "key", "GET", true );
+		$this->assertTrue( false === $api_response );
+
+		// Set the the original key.
+		$api_response = akismet_tests_rest_api_request( "key", "POST", true, array( 'key' => AKISMET_UNIT_TESTS_API_KEY ) );
+		$this->assertEqual( $api_response, AKISMET_UNIT_TESTS_API_KEY );
+		
+		$api_response = akismet_tests_rest_api_request( "key", "GET", true );
+		$this->assertEqual( $api_response, AKISMET_UNIT_TESTS_API_KEY );
+	}
+	
+	function test_settings() {
+		$api_response = akismet_tests_rest_api_request( "settings", "GET", true );
+		
+		$this->assertTrue( isset( $api_response->akismet_strictness ) );
+		$this->assertTrue( isset( $api_response->akismet_show_user_comments_approved ) );
+
+		$api_response = akismet_tests_rest_api_request( "settings", "POST", true, array( 'akismet_strictness' => true, 'akismet_show_user_comments_approved' => true ) );
+		
+		$this->assertEqual( $api_response->akismet_strictness, true );
+		$this->assertEqual( $api_response->akismet_show_user_comments_approved, true );
+
+		$api_response = akismet_tests_rest_api_request( "settings", "POST", true, array( 'akismet_strictness' => false, 'akismet_show_user_comments_approved' => false ) );
+		
+		$this->assertEqual( $api_response->akismet_strictness, false );
+		$this->assertEqual( $api_response->akismet_show_user_comments_approved, false );
+
+		$api_response = akismet_tests_rest_api_request( "settings", "GET", true );
+		
+		$this->assertEqual( $api_response->akismet_strictness, false );
+		$this->assertEqual( $api_response->akismet_show_user_comments_approved, false );
+	}
+	
+	function test_stats_get() {
+		$api_response = akismet_tests_rest_api_request( "stats", "GET", true, array( 'interval' => 'all' ) );
+
+		$this->assertTrue( property_exists( $api_response, 'all' ) );
+
+		$api_response = akismet_tests_rest_api_request( "stats", "GET", true, array( 'interval' => '60-days' ) );
+
+		$this->assertTrue( property_exists( $api_response, '60-days' ) );
+
+		$api_response = akismet_tests_rest_api_request( "stats", "GET", true, array( 'interval' => '6-months' ) );
+
+		$this->assertTrue( property_exists( $api_response, '6-months' ) );
+
+		// Defaults to all stats if no valid interval.
+		$api_response = akismet_tests_rest_api_request( "stats", "GET", true, array( 'interval' => 'five seconds' ) );
+
+		$this->assertTrue( property_exists( $api_response, 'all' ) );
 	}
 }
