@@ -30,6 +30,10 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 4.0.1 =
+
+* Fixed a bug that could prevent some users from connecting Akismet via their Jetpack connection.
+
 = 4.0 =
 *Release Date - 19 September 2017*
 
