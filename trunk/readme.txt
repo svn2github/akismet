@@ -34,6 +34,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 * Fixed a bug that could prevent some users from connecting Akismet via their Jetpack connection.
 * Ensured that any pending Akismet-related events are unscheduled if the plugin is deactivated.
+* Allow some JavaScript to be run asynchronously to avoid affecting page render speeds.
 
 = 4.0 =
 *Release Date - 19 September 2017*
