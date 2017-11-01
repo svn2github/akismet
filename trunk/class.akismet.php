@@ -1184,7 +1184,21 @@ p {
 	 * @static
 	 */
 	public static function plugin_deactivation( ) {
-		return self::deactivate_key( self::get_api_key() );
+		self::deactivate_key( self::get_api_key() );
+		
+		// Remove any scheduled cron jobs.
+		$akismet_cron_events = array(
+			'akismet_schedule_cron_recheck',
+			'akismet_scheduled_delete',
+		);
+		
+		foreach ( $akismet_cron_events as $akismet_cron_event ) {
+			$timestamp = wp_next_scheduled( $akismet_cron_event );
+			
+			if ( $timestamp ) {
+				wp_unschedule_event( $timestamp, $akismet_cron_event );
+			}
+		}
 	}
 	
 	/**
