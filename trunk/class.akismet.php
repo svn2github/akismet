@@ -534,11 +534,6 @@ class Akismet {
 		if ( get_comment_meta( $comment->comment_ID, 'akismet_rechecking' ) )
 			return;
 		
-		global $current_user;
-		$reporter = '';
-		if ( is_object( $current_user ) )
-			$reporter = $current_user->user_login;
-
 		// Assumption alert:
 		// We want to submit comments to Akismet only when a moderator explicitly spams or approves it - not if the status
 		// is changed automatically by another plugin.  Unfortunately WordPress doesn't provide an unambiguous way to
