@@ -545,13 +545,30 @@ class Akismet {
 		// determine why the transition_comment_status action was triggered.  And there are several different ways by which
 		// to spam and unspam comments: bulk actions, ajax, links in moderation emails, the dashboard, and perhaps others.
 		// We'll assume that this is an explicit user action if certain POST/GET variables exist.
-		if ( ( isset( $_POST['status'] ) && in_array( $_POST['status'], array( 'spam', 'unspam' ) ) ) ||
-			 ( isset( $_POST['spam'] )   && (int) $_POST['spam'] == 1 ) ||
-			 ( isset( $_POST['unspam'] ) && (int) $_POST['unspam'] == 1 ) ||
-			 ( isset( $_POST['comment_status'] )  && in_array( $_POST['comment_status'], array( 'spam', 'unspam' ) ) ) ||
-			 ( isset( $_GET['action'] )  && in_array( $_GET['action'], array( 'spam', 'unspam', 'spamcomment', 'unspamcomment', ) ) ) ||
-			 ( isset( $_POST['action'] ) && in_array( $_POST['action'], array( 'editedcomment' ) ) ) ||
-			 ( isset( $_GET['for'] ) && ( 'jetpack' == $_GET['for'] ) ) // Moderation via WP.com notifications/WP app/etc.
+		if (
+			 // status=spam: Marking as spam via the REST API or...
+			 // status=unspam: I'm not sure. Maybe this used to be used instead of status=approved? Or the UI for removing from spam but not approving has been since removed?...
+			 // status=approved: Unspamming via the REST API (Calypso) or...
+			 ( isset( $_POST['status'] ) && in_array( $_POST['status'], array( 'spam', 'unspam', 'approved', ) ) )
+			 // spam=1: Clicking "Spam" underneath a comment in wp-admin and allowing the AJAX request to happen.
+			 || ( isset( $_POST['spam'] ) && (int) $_POST['spam'] == 1 )
+			 // unspam=1: Clicking "Not Spam" underneath a comment in wp-admin and allowing the AJAX request to happen. Or, clicking "Undo" after marking something as spam.
+			 || ( isset( $_POST['unspam'] ) && (int) $_POST['unspam'] == 1 )
+			 // comment_status=spam/unspam: It's unclear where this is happening.
+			 || ( isset( $_POST['comment_status'] )  && in_array( $_POST['comment_status'], array( 'spam', 'unspam' ) ) )
+			 // action=spam: Choosing "Mark as Spam" from the Bulk Actions dropdown in wp-admin (or the "Spam it" link in notification emails).
+			 // action=unspam: Choosing "Not Spam" from the Bulk Actions dropdown in wp-admin.
+			 // action=spamcomment: Following the "Spam" link below a comment in wp-admin (not allowing AJAX request to happen).
+			 // action=unspamcomment: Following the "Not Spam" link below a comment in wp-admin (not allowing AJAX request to happen).
+			 || ( isset( $_GET['action'] ) && in_array( $_GET['action'], array( 'spam', 'unspam', 'spamcomment', 'unspamcomment', ) ) )
+			 // action=editedcomment: Editing a comment via wp-admin (and possibly changing its status).
+			 || ( isset( $_POST['action'] ) && in_array( $_POST['action'], array( 'editedcomment' ) ) )
+			 // for=jetpack: Moderation via the WordPress app, Calypso, anything powered by the Jetpack connection.
+			 || ( isset( $_GET['for'] ) && ( 'jetpack' == $_GET['for'] ) && ( ! defined( 'IS_WPCOM' ) || ! IS_WPCOM ) ) 
+			 // Certain WordPress.com API requests
+			 || ( defined( 'REST_API_REQUEST' ) && REST_API_REQUEST )
+			 // WordPress.org REST API requests
+			 || ( defined( 'REST_REQUEST' ) && REST_REQUEST )
 		 ) {
 			if ( $new_status == 'spam' && ( $old_status == 'approved' || $old_status == 'unapproved' || !$old_status ) ) {
 				return self::submit_spam_comment( $comment->comment_ID );
