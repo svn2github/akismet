@@ -33,6 +33,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 = 4.0.2 =
 
 * Fixed a bug that could cause Akismet to recheck a comment that has already been manually approved or marked as spam.
+* Fixed a bug that could cause Akismet to claim that some comments are still waiting to be checked when no comments are waiting to be checked.
 
 = 4.0.1 =
 *Release Date - 6 November 2017*
