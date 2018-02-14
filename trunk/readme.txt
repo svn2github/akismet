@@ -30,6 +30,10 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 4.0.3 =
+
+* Added a scheduled task to remove entries in wp_commentmeta that no longer have corresponding comments in wp_comments.
+
 = 4.0.2 =
 *Release Date - 18 December 2017*
 
