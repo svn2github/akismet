@@ -370,7 +370,7 @@ class Akismet {
 
 		$interval = apply_filters( 'akismet_delete_commentmeta_interval', 15 );
 
-		# enfore a minimum of 1 day
+		# enforce a minimum of 1 day
 		$interval = absint( $interval );
 		if ( $interval < 1 )
 			$interval = 1;
