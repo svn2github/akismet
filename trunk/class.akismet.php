@@ -349,6 +349,7 @@ class Akismet {
 
 			foreach ( $comment_ids as $comment_id ) {
 				do_action( 'delete_comment', $comment_id );
+				do_action( 'akismet_batch_delete_count', __FUNCTION__ );
 			}
 
 			// Prepared as strings since comment_id is an unsigned BIGINT, and using %d will constrain the value to the maximum signed BIGINT.
@@ -385,6 +386,7 @@ class Akismet {
 
 			foreach ( $comment_ids as $comment_id ) {
 				delete_comment_meta( $comment_id, 'akismet_as_submitted' );
+				do_action( 'akismet_batch_delete_count', __FUNCTION__ );
 			}
 
 			do_action( 'akismet_delete_commentmeta_batch', count( $comment_ids ) );
@@ -413,6 +415,7 @@ class Akismet {
 			foreach ( $commentmeta_results as $commentmeta ) {
 				if ( 'akismet_' == substr( $commentmeta->meta_key, 0, 8 ) ) {
 					delete_comment_meta( $commentmeta->comment_id, $commentmeta->meta_key );
+					do_action( 'akismet_batch_delete_count', __FUNCTION__ );
 					$commentmeta_deleted++;
 				}
 
