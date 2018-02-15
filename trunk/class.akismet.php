@@ -399,8 +399,8 @@ class Akismet {
 		global $wpdb;
 
 		$last_meta_id = 0;
-		$start_time = $_SERVER['REQUEST_TIME_FLOAT'];
-		$max_exec_time = ini_get('max_execution_time');
+		$start_time = isset( $_SERVER['REQUEST_TIME_FLOAT'] ) ? $_SERVER['REQUEST_TIME_FLOAT'] : microtime( true );
+		$max_exec_time = max( ini_get('max_execution_time') - 5, 3 );
 
 		while ( $commentmeta_results = $wpdb->get_results( $wpdb->prepare( "SELECT m.meta_id, m.comment_id, m.meta_key FROM {$wpdb->commentmeta} as m LEFT JOIN {$wpdb->comments} as c USING(comment_id) WHERE c.comment_id IS NULL AND m.meta_id > %d ORDER BY m.meta_id LIMIT 1000", $last_meta_id ) ) ) {
 			if ( empty( $commentmeta_results ) )
@@ -422,7 +422,7 @@ class Akismet {
 			do_action( 'akismet_delete_commentmeta_batch', $commentmeta_deleted );
 
 			// If we're getting close to max_execution_time, quit for this round.
-			if ( microtime(true) - $start_time > $max_exec_time - 5 )
+			if ( microtime(true) - $start_time > $max_exec_time )
 				return;
 		}
 
