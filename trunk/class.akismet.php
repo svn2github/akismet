@@ -1187,7 +1187,7 @@ class Akismet {
 <!doctype html>
 <html>
 <head>
-<meta charset="<?php bloginfo( 'charset' ); ?>">
+<meta charset="<?php bloginfo( 'charset' ); ?>" />
 <style>
 * {
 	text-align: center;
@@ -1200,6 +1200,7 @@ p {
 	font-size: 18px;
 }
 </style>
+</head>
 <body>
 <p><?php echo esc_html( $message ); ?></p>
 </body>
