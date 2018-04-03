@@ -33,6 +33,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 = 4.0.4 =
 
 * Fixed HTML in activation failure message to close META and HEAD tag properly.
+* Fixed a bug that would sometimes prevent Akismet from being correctly auto-configured.
 
 = 4.0.3 =
 *Release Date - 19 February 2018*

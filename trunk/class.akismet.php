@@ -51,6 +51,7 @@ class Akismet {
 		// Jetpack compatibility
 		add_filter( 'jetpack_options_whitelist', array( 'Akismet', 'add_to_jetpack_options_whitelist' ) );
 		add_action( 'update_option_wordpress_api_key', array( 'Akismet', 'updated_option' ), 10, 2 );
+		add_action( 'add_option_wordpress_api_key', array( 'Akismet', 'added_option' ), 10, 2 );
 	}
 
 	public static function get_api_key() {
@@ -107,6 +108,18 @@ class Akismet {
 		// Only run the registration if the old key is different.
 		if ( $old_value !== $value ) {
 			self::verify_key( $value );
+		}
+	}
+	
+	/**
+	 * Treat the creation of an API key the same as updating the API key to a new value.
+	 *
+	 * @param mixed  $option_name   Will always be "wordpress_api_key", until something else hooks in here.
+	 * @param mixed  $value         The option value.
+	 */
+	public static function added_option( $option_name, $value ) {
+		if ( 'wordpress_api_key' === $option_name ) {
+			return self::updated_option( '', $value );
 		}
 	}
 	
