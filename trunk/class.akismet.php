@@ -34,6 +34,7 @@ class Akismet {
 		add_action( 'akismet_schedule_cron_recheck', array( 'Akismet', 'cron_recheck' ) );
 
 		add_action( 'comment_form',  array( 'Akismet',  'add_comment_nonce' ), 1 );
+		add_action( 'comment_form_after',  array( 'Akismet',  'add_privacy_notice' ) );
 
 		add_action( 'admin_head-edit-comments.php', array( 'Akismet', 'load_form_js' ) );
 		add_action( 'comment_form', array( 'Akismet', 'load_form_js' ) );
@@ -856,6 +857,12 @@ class Akismet {
 			wp_nonce_field( 'akismet_comment_nonce_' . $post_id, 'akismet_comment_nonce', FALSE );
 			echo '</p>';
 		}
+	}
+
+	public static function add_privacy_notice() {
+		echo '<p class="akismet_privacy_notice">'
+			. sprintf( __( 'This site uses Akismet to reduce spam. <a href="%s">Learn how your data is processed</a>.', 'akismet' ), 'https://akismet.com/tos/' )
+			. '</p>';
 	}
 
 	public static function is_test_mode() {
