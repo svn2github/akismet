@@ -860,7 +860,7 @@ class Akismet {
 	}
 
 	public static function add_privacy_notice() {
-		if ( true !== apply_filters( 'akismet_show_privacy_notice', __return_true() ) ) {
+		if ( true !== apply_filters( 'akismet_show_privacy_notice',true ) ) {
 			return;
 		}
 		echo apply_filters(
