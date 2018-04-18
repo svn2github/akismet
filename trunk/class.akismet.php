@@ -860,9 +860,13 @@ class Akismet {
 	}
 
 	public static function add_privacy_notice() {
-		echo '<p class="akismet_privacy_notice">'
-			. sprintf( __( 'This site uses Akismet to reduce spam. <a href="%s">Learn how your data is processed</a>.', 'akismet' ), 'https://akismet.com/tos/' )
-			. '</p>';
+		if ( true !== apply_filters( 'akismet_show_privacy_notice', __return_true() ) ) {
+			return;
+		}
+		echo apply_filters(
+			'akismet_privacy_notice_markup',
+			'<p class="akismet_privacy_notice">' . sprintf( __( 'This site uses Akismet to reduce spam. <a href="%s">Learn how your data is processed</a>.', 'akismet' ), 'https://automattic.com/privacy/' ) . '</p>'
+		);
 	}
 
 	public static function is_test_mode() {
