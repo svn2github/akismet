@@ -32,7 +32,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 = 4.0.4 =
 
-* Now displaying a privacy-related paragraph under the comment form, hooked on `comment_form_after`. See `Akismet::add_privacy_notice()`. Two filters are available: `akismet_show_privacy_notice` (`true|false`, default `true`), and `akismet_privacy_notice_markup` (`string`, defaults to an unstyled paragraph with a CSS class of `akismet_privacy_notice`, and a link to our privacy page).
+* Added tools to control the display of a privacy related notice under comment forms.
 * Fixed HTML in activation failure message to close META and HEAD tag properly.
 * Fixed a bug that would sometimes prevent Akismet from being correctly auto-configured.
 

@@ -32,6 +32,10 @@ class Akismet_Admin {
 		if ( isset( $_POST['action'] ) && $_POST['action'] == 'enter-key' ) {
 			self::enter_api_key();
 		}
+
+		if ( ! empty( $_GET['akismet_comment_form_privacy_notice'] ) ) {
+			self::set_form_privacy_notice_option( $_GET['akismet_comment_form_privacy_notice'] );
+		}
 	}
 
 	public static function init_hooks() {
@@ -260,7 +264,13 @@ class Akismet_Admin {
 		foreach( array( 'akismet_strictness', 'akismet_show_user_comments_approved' ) as $option ) {
 			update_option( $option, isset( $_POST[$option] ) && (int) $_POST[$option] == 1 ? '1' : '0' );
 		}
-		
+
+		if ( ! empty( $_POST['akismet_comment_form_privacy_notice'] ) ) {
+			self::set_form_privacy_notice_option( $_POST['akismet_comment_form_privacy_notice'] );
+		} else {
+			self::set_form_privacy_notice_option( 'hide' );
+		}
+
 		if ( Akismet::predefined_api_key() ) {
 			return false; //shouldn't have option to save key if already defined
 		}
@@ -825,6 +835,12 @@ class Akismet_Admin {
 		) );
 	}
 
+	public static function display_privacy_notice_control_warning() {
+		Akismet::view( 'notice', array(
+			'type' => 'privacy',
+		) );
+	}
+
 	public static function display_spam_check_warning() {
 		Akismet::fix_scheduled_recheck();
 
@@ -958,6 +974,10 @@ class Akismet_Admin {
 			$notices[] = array( 'type' => $akismet_user->status );
 		}
 
+		if ( false === get_option( 'akismet_comment_form_privacy_notice' ) ) {
+			$notices[] = array( 'type' => 'privacy' );
+		}
+
 		/*
 		// To see all variants when testing.
 		$notices[] = array( 'type' => 'active-notice', 'time_saved' => 'Cleaning up spam takes time. Akismet has saved you 1 minute!' );
@@ -1023,6 +1043,8 @@ class Akismet_Admin {
 			}
 			
 			echo '<div class="notice notice-success"><p>' . esc_html( $message ) . '</p></div>';
+		} else if ( false === get_option( 'akismet_comment_form_privacy_notice' ) ) {
+			self::display_privacy_notice_control_warning();
 		}
 	}
 
@@ -1127,5 +1149,12 @@ class Akismet_Admin {
 		}
 		
 		return $all_plugins;
+	}
+
+	private static function set_form_privacy_notice_option( $state ) {
+		if ( in_array( $state, array( 'display', 'hide' ) ) ) {
+			// DEBUG: delete_option( 'akismet_comment_form_privacy_notice' );
+			update_option( 'akismet_comment_form_privacy_notice', $state );
+		}
 	}
 }

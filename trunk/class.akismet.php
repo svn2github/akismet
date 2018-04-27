@@ -34,7 +34,6 @@ class Akismet {
 		add_action( 'akismet_schedule_cron_recheck', array( 'Akismet', 'cron_recheck' ) );
 
 		add_action( 'comment_form',  array( 'Akismet',  'add_comment_nonce' ), 1 );
-		add_action( 'comment_form_after',  array( 'Akismet',  'add_privacy_notice' ) );
 
 		add_action( 'admin_head-edit-comments.php', array( 'Akismet', 'load_form_js' ) );
 		add_action( 'comment_form', array( 'Akismet', 'load_form_js' ) );
@@ -53,6 +52,8 @@ class Akismet {
 		add_filter( 'jetpack_options_whitelist', array( 'Akismet', 'add_to_jetpack_options_whitelist' ) );
 		add_action( 'update_option_wordpress_api_key', array( 'Akismet', 'updated_option' ), 10, 2 );
 		add_action( 'add_option_wordpress_api_key', array( 'Akismet', 'added_option' ), 10, 2 );
+
+		add_action( 'comment_form_after',  array( 'Akismet',  'display_comment_form_privacy_notice' ) );
 	}
 
 	public static function get_api_key() {
@@ -859,16 +860,6 @@ class Akismet {
 		}
 	}
 
-	public static function add_privacy_notice() {
-		if ( true !== apply_filters( 'akismet_show_privacy_notice',true ) ) {
-			return;
-		}
-		echo apply_filters(
-			'akismet_privacy_notice_markup',
-			'<p class="akismet_privacy_notice">' . sprintf( __( 'This site uses Akismet to reduce spam. <a href="%s">Learn how your data is processed</a>.', 'akismet' ), 'https://automattic.com/privacy/' ) . '</p>'
-		);
-	}
-
 	public static function is_test_mode() {
 		return defined('AKISMET_TEST_MODE') && AKISMET_TEST_MODE;
 	}
@@ -1412,5 +1403,22 @@ p {
 		}
 		
 		return apply_filters( 'akismet_predefined_api_key', false );
+	}
+
+	/**
+	 * Controls the display of a privacy related notice underneath the comment form using the `akismet_comment_form_privacy_notice` option and filter respectively.
+	 * Default is top not display the notice, leaving the choice to site admins, or integrators.
+	 */
+	public static function display_comment_form_privacy_notice() {
+		if ( 'display' !== apply_filters( 'akismet_comment_form_privacy_notice', get_option( 'akismet_comment_form_privacy_notice', 'hide' ) ) ) {
+			return;
+		}
+		echo apply_filters(
+			'akismet_comment_form_privacy_notice_markup',
+			'<p class="akismet_comment_form_privacy_notice">' . sprintf(
+				__( 'This site uses Akismet to reduce spam. <a href="%s">Learn how your comment data is processed</a>.', 'akismet' ),
+				'https://en.support.wordpress.com/automattic-gdpr/'
+			) . '</p>'
+		);
 	}
 }
