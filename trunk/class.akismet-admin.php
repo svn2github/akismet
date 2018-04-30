@@ -836,6 +836,8 @@ class Akismet_Admin {
 	}
 
 	public static function display_privacy_notice_control_warning() {
+		if ( !current_user_can( 'manage_options' ) )
+			return;
 		Akismet::view( 'notice', array(
 			'type' => 'privacy',
 		) );
