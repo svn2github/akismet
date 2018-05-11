@@ -74,6 +74,13 @@ class Akismet_Admin {
 	public static function admin_init() {
 		load_plugin_textdomain( 'akismet' );
 		add_meta_box( 'akismet-status', __('Comment History', 'akismet'), array( 'Akismet_Admin', 'comment_status_meta_box' ), 'comment', 'normal' );
+
+		if ( function_exists( 'wp_add_privacy_policy_content' ) ) {
+			wp_add_privacy_policy_content(
+				__( 'Akismet', 'akismet' ),
+				__( 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam rhoncus orci eget pulvinar facilisis. Sed nisi purus, blandit non augue sit amet, sodales congue dui. Quisque accumsan justo lorem, eget cursus tortor scelerisque vel. In pulvinar est eu augue commodo fringilla. Fusce accumsan ipsum metus, quis convallis ante malesuada cursus. Sed porta dolor dolor, at sollicitudin libero tempus rhoncus. Donec porta magna diam, ut placerat ex vulputate et.', 'akismet' )
+			);
+		}
 	}
 
 	public static function admin_menu() {

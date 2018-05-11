@@ -32,6 +32,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 = 4.0.4 =
 
+* Added a hook to provide Akismet-specific privacy information for a site's privacy policy.
 * Added tools to control the display of a privacy related notice under comment forms.
 * Fixed HTML in activation failure message to close META and HEAD tag properly.
 * Fixed a bug that would sometimes prevent Akismet from being correctly auto-configured.
