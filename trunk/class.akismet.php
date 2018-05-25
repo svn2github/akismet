@@ -1417,7 +1417,7 @@ p {
 			'akismet_comment_form_privacy_notice_markup',
 			'<p class="akismet_comment_form_privacy_notice">' . sprintf(
 				__( 'This site uses Akismet to reduce spam. <a href="%s">Learn how your comment data is processed</a>.', 'akismet' ),
-				'https://en.support.wordpress.com/automattic-gdpr/'
+				'https://akismet.com/privacy/'
 			) . '</p>'
 		);
 	}
