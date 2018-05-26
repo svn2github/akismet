@@ -1060,7 +1060,7 @@ class Akismet_Admin {
 		}
 
 		$akismet_comment_form_privacy_notice_option = get_option( 'akismet_comment_form_privacy_notice' );
-		if ( empty( $akismet_comment_form_privacy_notice_option ) ) {
+		if ( ! in_array( $akismet_comment_form_privacy_notice_option, array( 'hide', 'display' ) ) ) {
 			self::display_privacy_notice_control_warning();
 		}
 	}
