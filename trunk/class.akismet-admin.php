@@ -33,7 +33,7 @@ class Akismet_Admin {
 			self::enter_api_key();
 		}
 
-		if ( ! empty( $_GET['akismet_comment_form_privacy_notice'] ) ) {
+		if ( ! empty( $_GET['akismet_comment_form_privacy_notice'] ) && empty( $_GET['settings-updated']) ) {
 			self::set_form_privacy_notice_option( $_GET['akismet_comment_form_privacy_notice'] );
 		}
 	}
@@ -1057,7 +1057,7 @@ class Akismet_Admin {
 			}
 			
 			echo '<div class="notice notice-success"><p>' . esc_html( $message ) . '</p></div>';
-		} else if ( false === get_option( 'akismet_comment_form_privacy_notice' ) ) {
+		} else if ( empty( get_option( 'akismet_comment_form_privacy_notice' ) ) ) {
 			self::display_privacy_notice_control_warning();
 		}
 	}
@@ -1167,7 +1167,6 @@ class Akismet_Admin {
 
 	private static function set_form_privacy_notice_option( $state ) {
 		if ( in_array( $state, array( 'display', 'hide' ) ) ) {
-			// DEBUG: delete_option( 'akismet_comment_form_privacy_notice' );
 			update_option( 'akismet_comment_form_privacy_notice', $state );
 		}
 	}
