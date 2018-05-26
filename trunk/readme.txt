@@ -30,6 +30,11 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 4.0.5 =
+*Release Date - 26 May 2018*
+
+* Corrected version number after tagging. Sorry...
+
 = 4.0.4 =
 *Release Date - 26 May 2018*
 
