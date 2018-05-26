@@ -69,6 +69,11 @@ class Akismet_Admin {
 		add_filter( 'wxr_export_skip_commentmeta', array( 'Akismet_Admin', 'exclude_commentmeta_from_export' ), 10, 3 );
 		
 		add_filter( 'all_plugins', array( 'Akismet_Admin', 'modify_plugin_description' ) );
+
+		if ( class_exists( 'Jetpack' ) ) {
+			add_filter( 'akismet_comment_form_privacy_notice_url_display',  array( 'Akismet_Admin', 'jetpack_comment_form_privacy_notice_url' ) );
+			add_filter( 'akismet_comment_form_privacy_notice_url_hide',     array( 'Akismet_Admin', 'jetpack_comment_form_privacy_notice_url' ) );
+		}
 	}
 
 	public static function admin_init() {
@@ -1165,5 +1170,9 @@ class Akismet_Admin {
 			// DEBUG: delete_option( 'akismet_comment_form_privacy_notice' );
 			update_option( 'akismet_comment_form_privacy_notice', $state );
 		}
+	}
+
+	public static function jetpack_comment_form_privacy_notice_url( $url ) {
+		return str_replace( 'options-general.php', 'admin.php', $url );
 	}
 }
