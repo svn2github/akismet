@@ -1057,7 +1057,10 @@ class Akismet_Admin {
 			}
 			
 			echo '<div class="notice notice-success"><p>' . esc_html( $message ) . '</p></div>';
-		} else if ( empty( get_option( 'akismet_comment_form_privacy_notice' ) ) ) {
+		}
+
+		$akismet_comment_form_privacy_notice_option = get_option( 'akismet_comment_form_privacy_notice' );
+		if ( empty( $akismet_comment_form_privacy_notice_option ) ) {
 			self::display_privacy_notice_control_warning();
 		}
 	}

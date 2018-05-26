@@ -30,6 +30,11 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 4.0.6 =
+*Release Date - 26 May 2018*
+
+* Moved away from using `empty( get_option() )` to instantiating a variable to be compatible with older versions of PHP (5.3, 5.4, etc).  
+
 = 4.0.5 =
 *Release Date - 26 May 2018*
 
