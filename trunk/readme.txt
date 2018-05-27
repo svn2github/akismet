@@ -30,6 +30,11 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 4.0.7 =
+
+* Based on user feedback, the link on "Learn how your comment data is processed." in the optional privacy notice now has a `target` of `_blank` and opens in a new tab/window.
+* Updated the in-admin privacy notice to use the term "comment" instead of "contact" in "Akismet can display a notice to your users under your comment forms."
+
 = 4.0.6 =
 *Release Date - 26 May 2018*
 
