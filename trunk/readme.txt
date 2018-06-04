@@ -30,6 +30,10 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 4.0.8 =
+
+* Improved the grammar and consistency of the in-admin privacy related notes (notice and config).
+
 = 4.0.7 =
 *Release Date - 28 May 2018*
 
