@@ -34,6 +34,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 * Improved the grammar and consistency of the in-admin privacy related notes (notice and config).
 * Revised in-admin explanation of the comment form privacy notice to make its usage clearer. 
+* Added `rel="nofollow noopener"` to the comment form privacy notice to improve SEO and security.
 
 = 4.0.7 =
 *Release Date - 28 May 2018*
