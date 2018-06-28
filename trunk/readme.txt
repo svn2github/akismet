@@ -30,6 +30,10 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 4.1 =
+
+* Added a WP-CLI method for retrieving stats.
+
 = 4.0.8 =
 *Release Date - 19 June 2018*
 
