@@ -1190,6 +1190,24 @@ class TestRESTAPIUnprivileged extends UnitTestCase {
 		
 		$this->assertEqual( $api_response->code, "rest_forbidden" );
 	}
+	
+	function test_alert_get() {
+		$api_response = akismet_tests_rest_api_request( "alert", "GET", false );
+
+		$this->assertEqual( $api_response->code, "rest_forbidden" );
+	}
+
+	function test_alert_set() {
+		$api_response = akismet_tests_rest_api_request( "alert", "POST", false, array( 'code' => 1, 'message' => 'hello' ) );
+
+		$this->assertEqual( $api_response->code, "rest_forbidden" );
+	}
+	
+	function test_alert_delete() {
+		$api_response = akismet_tests_rest_api_request( "alert", "DELETE", false );
+		
+		$this->assertEqual( $api_response->code, "rest_forbidden" );
+	}
 }
 
 class TestRESTAPIPrivileged extends UnitTestCase {
@@ -1276,5 +1294,39 @@ class TestRESTAPIPrivileged extends UnitTestCase {
 		$api_response = akismet_tests_rest_api_request( "stats", "GET", true, array( 'interval' => 'five seconds' ) );
 
 		$this->assertTrue( property_exists( $api_response, 'all' ) );
+	}
+	
+	function test_alert() {
+		$test_code = 217;
+		$test_message = 'Code 217.';
+
+		$api_response = akismet_tests_rest_api_request( "alert", "GET", false, array( 'key' => Akismet::get_api_key() ) );
+		$this->assertEqual( $api_response->code, get_option( 'akismet_alert_code' ) );
+		$this->assertEqual( $api_response->message, get_option( 'akismet_alert_msg' ) );
+
+		update_option( 'akismet_alert_code', $test_code );
+		update_option( 'akismet_alert_msg', $test_message );
+
+		$api_response = akismet_tests_rest_api_request( "alert", "GET", false, array( 'key' => Akismet::get_api_key() ) );
+		$this->assertEqual( $api_response->code, $test_code );
+		$this->assertEqual( $api_response->message, $test_message );
+
+		// Update the code.
+		// This retrieves the latest code from the Akismet server, so we'll just settle for the code not being equal to 217.
+		$api_response = akismet_tests_rest_api_request( "alert", "POST", false, array( 'key' => Akismet::get_api_key() ) );
+		$this->assertNotEqual( $api_response->code, $test_code );
+		$this->assertNotEqual( $api_response->message, $test_message );
+
+		update_option( 'akismet_alert_code', $test_code );
+		update_option( 'akismet_alert_msg', $test_message );
+
+		// Delete.
+		$api_response = akismet_tests_rest_api_request( "alert", "DELETE", false, array( 'key' => Akismet::get_api_key() ) );
+		$this->assertEqual( $api_response->code, false );
+		$this->assertEqual( $api_response->message, false );
+		
+		$api_response = akismet_tests_rest_api_request( "alert", "GET", false, array( 'key' => Akismet::get_api_key() ) );
+		$this->assertEqual( $api_response->code, false );
+		$this->assertEqual( $api_response->message, false );
 	}
 }

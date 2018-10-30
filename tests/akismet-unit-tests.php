@@ -4,7 +4,7 @@
 Plugin Name: Akismet Unit Tests
 Plugin URI: http://akismet.com/
 Description: Additional code to help while testing the Akismet plugin.  DO NOT RUN THIS ON A PRODUCTION SITE!
-Version: 4.0a1
+Version: 4.1a2
 Author: Automattic
 Author URI: http://automattic.com/wordpress-plugins/
 License: GPLv2

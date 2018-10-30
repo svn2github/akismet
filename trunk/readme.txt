@@ -34,6 +34,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 * Added a WP-CLI method for retrieving stats.
 * Hooked into the new "Personal Data Eraser" functionality from WordPress 4.9.6.
+* Added functionality to clear outdated alerts from Akismet.com.
 
 = 4.0.8 =
 *Release Date - 19 June 2018*
