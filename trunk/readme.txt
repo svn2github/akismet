@@ -30,6 +30,10 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 == Changelog ==
 
+= 4.1.1 =
+
+* Fixed the "Setup Akismet" notice so it resizes responsively.
+
 = 4.1 =
 *Release Date - 12 November 2018*
 
