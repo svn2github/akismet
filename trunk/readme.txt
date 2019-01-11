@@ -34,6 +34,7 @@ Upload the Akismet plugin to your blog, Activate it, then enter your [Akismet.co
 
 * Fixed the "Setup Akismet" notice so it resizes responsively.
 * Only highlight the "Save Changes" button in the Akismet config when changes have been made.
+* The count of comments in your spam queue shown on the dashboard show now always be up-to-date.
 
 = 4.1 =
 *Release Date - 12 November 2018*
